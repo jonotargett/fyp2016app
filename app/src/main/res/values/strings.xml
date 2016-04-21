@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">2099 App</string>
+    <string name="title_activity_main">FYP 2099</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_activity_beep_maps">Mapbeep</string>
+</resources>
