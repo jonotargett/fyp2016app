@@ -1,5 +1,6 @@
 package com.fyp2099.app;
 
+import android.app.FragmentManager;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -78,7 +79,14 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState) {
 
-		MapFragment mapFragment = (MapFragment)Main.FM.findFragmentByTag("bats").getChildFragmentManager().findFragmentById(R.id.mapid);
+
+		MapFragment mapFragment;
+
+		// API 23 works this way
+		//mapFragment = (MapFragment)Main.FM.findFragmentByTag("bats").getChildFragmentManager().findFragmentById(R.id.mapid);
+
+		// API 19 works this way
+		mapFragment = (MapFragment)getFragmentManager().findFragmentById(R.id.mapid);
 		mapFragment.getMapAsync(this);
 
 	}
