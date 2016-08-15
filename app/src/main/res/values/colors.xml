@@ -2,7 +2,14 @@
 <resources>
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#FF4081</color>
+    <color name="colorAccent">#54D4FF</color>
+    <color name="defaultAccent">#FF4081</color>
     <color name="colorWarn">#EC7600</color>
-    <color name="colorHalt">#FC3622</color>
+    <color name="colorHalt">@color/defaultAccent</color>
+    <color name="joystick_bg">#DDDDDD</color>
+    <color name="tab_bg">#DDDDDD</color>
+    <color name="button_unpressed">#CCCCCC</color>
+    <color name="button_pressed">@color/defaultAccent</color>
+    <color name="map_zone_outline">@color/defaultAccent</color>
+    <color name="map_zone_fill">#7FFF4081</color>
 </resources>

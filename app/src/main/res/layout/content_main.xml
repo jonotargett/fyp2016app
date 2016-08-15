@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="fill_parent"
-    android:layout_height="match_parent"
-    tools:context="com.fyp2099.app.Main"
-    tools:showIn="@layout/activity_main"
-    app:layout_behavior="@string/appbar_scrolling_view_behavior">
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="fill_parent"
+                android:layout_height="match_parent"
+                tools:context="com.fyp2099.app.Main"
+                tools:showIn="@layout/activity_main"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-<!--    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
+    <!--    android:paddingBottom="@dimen/activity_vertical_margin"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin"
 
-     android:layout_toRightOf="@+id/maplayout"
-     -->
+         android:layout_toRightOf="@+id/maplayout"
+         -->
 
 
     <RelativeLayout
@@ -30,52 +30,351 @@
         android:id="@+id/table"
         android:layout_width="300dp"
         android:layout_height="match_parent"
-
         android:layout_alignParentRight="true">
 
 
-            <ToggleButton
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:id="@+id/relativeLayout"
+            android:background="@color/tab_bg"
+            android:padding="@dimen/default_padding">
+
+            <ImageButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Zone Placement"
-                android:textOff="New Zone"
-                android:textOn="Finished"
-                android:id="@+id/toggleButton"
-                android:layout_column="4"
-                android:checked="false"/>
+                android:id="@+id/imageButton"
+                android:src="@mipmap/steering_icon"
+                android:background="@drawable/menu_button"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentStart="true"
+                android:layout_marginStart="20dp"/>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="300dp"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="Debug log tezt\nScanning..."
-            android:id="@+id/textView"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentStart="true"
-            android:padding="5dp"/>
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/imageButton2"
+                android:src="@mipmap/map_icon"
+                android:background="@drawable/menu_button"
+                android:layout_alignParentTop="true"
+                android:layout_centerHorizontal="true"/>
+
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/imageButton3"
+                android:src="@mipmap/settings_icon"
+                android:background="@drawable/menu_button"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="20dp"/>
+        </RelativeLayout>
 
 
 
+        <ViewFlipper
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/viewFlipper"
+            android:layout_below="@+id/relativeLayout">
+
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="@dimen/default_padding">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="Vehicle Controls"
+                    android:id="@+id/textView4"
+                    android:autoText="false"/>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:padding="@dimen/default_padding">
+
+                    <Button
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Stop Engine"
+                        android:id="@+id/stopEngineButton"
+                        android:layout_alignParentTop="true"
+                        android:layout_alignParentStart="true"/>
+
+                    <ToggleButton
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="New ToggleButton"
+                        android:id="@+id/toggleButton4"
+                        android:layout_alignParentTop="true"
+                        android:layout_alignParentEnd="true"
+                        android:textOff="Handbrake Off"
+                        android:textOn="Handbrake On"/>
+
+                </RelativeLayout>
+
+                <com.jmedeisis.bugstick.Joystick
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/default_margin"
+                    android:id="@+id/joystick"
+                    android:layout_alignParentBottom="true"
+                    android:background="@drawable/bg_base"
+                    app:start_on_first_touch="true"
+                    app:force_square="true"
+                    app:motion_constraint="None"
+                    >
+
+                    <Button
+                        android:layout_width="@dimen/stick_size"
+                        android:layout_height="@dimen/stick_size"
+                        android:background="@drawable/bg_stick"
+                        />
+
+                </com.jmedeisis.bugstick.Joystick>
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="@dimen/default_padding"
+                android:layout_alignParentEnd="true"
+                android:layout_column="0"
+                android:layout_above="@+id/textView">
+
+
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="Map Controls"
+                    android:id="@+id/textView2"/>
+
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal">
+
+                    <ToggleButton
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Zone Placement"
+                        android:textOff="New Zone"
+                        android:textOn="Finished"
+                        android:id="@+id/toggleButton"
+                        android:layout_column="4"
+                        android:checked="false"/>
+
+                    <ToggleButton
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Zone Placement"
+                        android:textOff="New Path"
+                        android:textOn="Finished"
+                        android:id="@+id/toggleButton2"
+                        android:layout_column="4"
+                        android:checked="false"/>
+                </LinearLayout>
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Generate Route"
+                    android:id="@+id/button"/>
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Begin Scanning"
+                    android:id="@+id/button4"/>
+
+                <ToggleButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Map Mode"
+                    android:textOff="Satellite Map"
+                    android:textOn="Road Map"
+                    android:id="@+id/mapTypeButton"/>
+
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="@dimen/default_padding">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="Tools &amp; Connection Settings"
+                    android:id="@+id/textView3"
+                    />
+
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:text="IP:"
+                        android:id="@+id/IPLabel"/>
+
+                    <EditText
+                        android:layout_width="60dp"
+                        android:layout_height="wrap_content"
+                        android:inputType="number|numberDecimal"
+                        android:ems="10"
+                        android:textSize="12pt"
+                        android:id="@+id/ip1"
+                        android:maxLength="3"
+                        android:digits="0123456789."
+                        android:layout_column="0"
+                        android:text="192"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:text="."
+                        android:id="@+id/textView5"/>
+
+                    <EditText
+                        android:layout_width="60dp"
+                        android:layout_height="wrap_content"
+                        android:inputType="number|numberDecimal"
+                        android:ems="10"
+                        android:maxLength="3"
+                        android:textSize="12pt"
+                        android:digits="0123456789."
+                        android:id="@+id/ip2"
+                        android:layout_column="1"
+                        android:text="168"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:text="."
+                        android:id="@+id/textView6"/>
+
+                    <EditText
+                        android:layout_width="60dp"
+                        android:layout_height="wrap_content"
+                        android:inputType="number|numberDecimal"
+                        android:ems="10"
+                        android:maxLength="3"
+                        android:textSize="12pt"
+                        android:digits="0123456789."
+                        android:id="@+id/ip3"
+                        android:layout_column="2"
+                        android:text="1"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:text="."
+                        android:id="@+id/textView7"/>
+
+                    <EditText
+                        android:layout_width="60dp"
+                        android:layout_height="wrap_content"
+                        android:inputType="number|numberDecimal"
+                        android:ems="10"
+                        android:maxLength="3"
+                        android:textSize="12pt"
+                        android:digits="0123456789."
+                        android:id="@+id/ip4"
+                        android:layout_column="3"
+                        android:text="168"/>
+
+                </LinearLayout>
+
+                <ToggleButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Connect to Platform"
+                    android:id="@+id/connectToggle"
+                    android:layout_gravity="right"
+                    android:textOff="Connect to Platform"
+                    android:textOn="Connecting..."
+                    android:layout_marginRight="@dimen/default_margin"
+                    />
+
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <Button
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="SEND PACKET 1"
+                        android:id="@+id/debugButton1"/>
+
+                    <Button
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="SEND PACKET 2"
+                        android:id="@+id/debugButton2"
+                        />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:id="@+id/textView"
+                    android:layout_alignParentBottom="true"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignParentStart="true"
+                    android:maxLength="1000"
+                    android:scrollbars="vertical"
+                    android:gravity="bottom"
+                    android:padding="5dp"/>
+            </LinearLayout>
+
+
+        </ViewFlipper>
 
     </RelativeLayout>
 
 
-<!--
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="DISPLAY GOOGLE MAP"
-        android:id="@+id/mapButton"
-        android:layout_below="@id/table" />
 
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="SET INIT"
-        android:id="@+id/initButton"
-        android:layout_below="@id/mapButton" />
 
--->
+    <!--
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="DISPLAY GOOGLE MAP"
+            android:id="@+id/mapButton"
+            android:layout_below="@id/table" />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="SET INIT"
+            android:id="@+id/initButton"
+            android:layout_below="@id/mapButton" />
+
+    -->
 
 </RelativeLayout>

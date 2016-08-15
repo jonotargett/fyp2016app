@@ -40,6 +40,7 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 	private HashSet<Polygon> polygons;
 	private HashSet<Marker> markers;
 
+
 	@Nullable
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -57,6 +58,7 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 
 		markers = new HashSet<Marker>();
 		polygons = new HashSet<Polygon>();
+
 	}
 
 	public void setBoundaryLayingState(boolean setunset) {
@@ -68,8 +70,9 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 		if(setunset) {
 			boundaryLayingState = true;
 			zone = new PolygonOptions()
-					.fillColor(Color.argb(50, 255, 0, 0))
-					.strokeColor(Color.RED)
+					.fillColor(getResources().getColor(R.color.map_zone_fill))
+					.strokeColor(getResources().getColor(R.color.map_zone_outline))
+					.strokeWidth(getResources().getDimension(R.dimen.map_stroke_width))
 					.clickable(true);
 		} else {
 			addPolygonPoint(new LatLng(0, 0), true);
@@ -160,7 +163,9 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 	}
 
 
-
+	public void setMapType(int type) {
+		mMap.setMapType(type);
+	}
 
 
 
@@ -172,8 +177,8 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 			Log.e("pork", "oprokros");
 		}
 
-		mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
-		//mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+		//mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+		mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 
 		try {
 			mMap.setMyLocationEnabled(true);
@@ -198,8 +203,9 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 				.add(new LatLng(-34.921003, 138.610665))
 				.add(new LatLng(-34.934755, 138.617857))
 				.add(new LatLng(-34.936363, 138.588315))
-				.fillColor(Color.argb(50, 255, 0, 0))
-				.strokeColor(Color.RED);
+				.fillColor(getResources().getColor(R.color.map_zone_fill))
+				.strokeWidth(getResources().getDimension(R.dimen.map_stroke_width))
+				.strokeColor(getResources().getColor(R.color.map_zone_outline));
 
 // Get back the mutable Polyline
 		Polygon polyline = mMap.addPolygon(rectOptions);

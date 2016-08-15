@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="bugstick-0.2.2">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/app/build/intermediates/exploded-aar/com.jmedeisis/bugstick/0.2.2/res" />
+      <root url="jar://$PROJECT_DIR$/app/build/intermediates/exploded-aar/com.jmedeisis/bugstick/0.2.2/jars/classes.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.jmedeisis/bugstick/0.2.2/81f7de7a42a499f027d76c56e8b571f16da814f5/bugstick-0.2.2-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

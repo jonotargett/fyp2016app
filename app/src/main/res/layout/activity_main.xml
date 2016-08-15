@@ -25,7 +25,7 @@
             android:layout_height="wrap_content"
             android:text="Emergency Stop"
             android:layout_gravity="right"
-            android:background="@android:drawable/btn_default"
+            android:background="@drawable/menu_button"
             android:backgroundTint="@color/colorHalt"
             android:drawableTintMode="multiply"
             android:drawableTint="@color/colorHalt"
@@ -45,3 +45,4 @@
 
 </android.support.design.widget.CoordinatorLayout>
 
+<!--android:background="@android:drawable/btn_default"-->
