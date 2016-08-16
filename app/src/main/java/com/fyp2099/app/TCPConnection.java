@@ -1,15 +1,21 @@
 package com.fyp2099.app;
 
+import android.renderscript.ScriptGroup;
 import android.util.Log;
 import android.os.SystemClock;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketAddress;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.AbstractQueue;
 import java.util.LinkedList;
@@ -29,14 +35,17 @@ public class TCPConnection {
 	//public static final String SERVERIP = "129.127.230.131";
 	public static final int SERVERPORT = 2099;
 	public static final int SLEEP_DURATION = 20;    // milliseconds?
-	public static final int KEEPALIVE_PERIOD = 500; // also milliseocnds
+	public static final int RECONNECT_TIMEOUT = 1000;
+	public static final int DISCONNECT_TIMEOUT = 6000; // also milliseocnds
 
 	public InetAddress serverAddr;
 	public Socket socket;
 
-	private BufferedReader in;
-	private BufferedWriter out;
-	char[] buffer;
+	//private BufferedReader in;
+	//private BufferedWriter out;
+	private InputStream in;
+	private OutputStream out;
+	byte[] buffer;
 	int offset;
 	boolean collectingPacket;
 
@@ -49,13 +58,13 @@ public class TCPConnection {
 
 	public TCPConnection(Main main) {
 		m = main;
-		buffer = new char[1024];
+		buffer = new byte[1024];
 		offset = 0;
 		collectingPacket = false;
 		outgoingPackets = new LinkedList<>();
 	}
 
-	public void Connect(final String ipAddr) {
+	public boolean Connect(final String ipAddr) {
 		Log.i("NETWORK", "connecting...");
 
 		//byte[] ipAddr = new byte[]{b0, b1, b2, b3};
@@ -63,50 +72,70 @@ public class TCPConnection {
 		try	{
 			//serverAddr = InetAddress.getByName(SERVERIP);
 			serverAddr = InetAddress.getByName(ipAddr);
-			socket = new Socket(serverAddr, SERVERPORT);
+			//socket = new Socket(serverAddr, SERVERPORT);
+			socket = new Socket();
+			socket.connect(new InetSocketAddress(serverAddr, SERVERPORT), 3000);
 
-			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+			//in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			//out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+			in = socket.getInputStream();
+			out = socket.getOutputStream();
+
 
 			//THIS PART IS VERY MUCH REQUIRED. FIRST SENT NEEDS TO BE SYN_ACK OR WILL BE
 			// REJECTED, EITHER BY BAD ACCEPT OR TIMEOUT
-			out.write('\16');
+			out.write((byte)'\16');
 			out.flush();
+		}
+		catch(SocketTimeoutException e) {
+			Log.i("NETWORK", "could not resolve host");
+			m.appendLog("Connected timeout occurred\n");
+			return false;
 		}
 		catch(UnknownHostException e) {
 			//do nothing
 			Log.i("NETWORK", "could not resolve host");
 			m.appendLog("Could not resolve host\n");
-			return;
+			return false;
 		}
-
 		catch(IOException e) {
 			//also do nothing
 			Log.i("NETWORK", "could not connect to socket");
 			m.appendLog("Could not connect to socket\n");
-			return;
+			return false;
 		}
+
 
 		connected = true;
 
 		t1 = SystemClock.elapsedRealtime();
-		connectionLoop();
+		return true;
+		//connectionLoop();
 	}
 
-	private void connectionLoop() {
+	public boolean connectionLoop() {
 		while(connected) {
 			t2 = SystemClock.elapsedRealtime();
 
-			// ping the quad to keep connected
-			// ACTUALLY NO. THE QUAD WILL PING. WE WILL DO NOTHING.
-			// JUST RESPOND TO THE QUADS PINGS. NO POINT US BOTH DOING THE TIMING
-			//if(t2 > (t1 + KEEPALIVE_PERIOD)) {
-			//	Receive();
-			//	t1 = SystemClock.elapsedRealtime();
-			//}
-
 			//check for incoming/outgoing messages
-			Receive();
+			boolean r = Receive();
+			if(!r) {
+				if(t2 > (t1 + RECONNECT_TIMEOUT)) {        // havent received anything for a while
+					try {
+						out.write((byte) '\16');
+						out.flush();
+					}
+					catch(IOException e) {
+						// do nothing
+					}
+				}
+				if(t2 > (t1 + DISCONNECT_TIMEOUT)) {       //havent received anything for too long
+					connected = false;
+					break;
+				}
+			} else {
+				t1 = SystemClock.elapsedRealtime();
+			}
 
 			while(outgoingPackets.peek() != null) {
 				Send(outgoingPackets.poll());
@@ -115,13 +144,16 @@ public class TCPConnection {
 
 			// sleep for a bit to stop the thread from going crazy
 			try {
-				Thread.sleep(0, 1000);                   //0ms, 1000 nanoseconds of sleep.
+				Thread.sleep(0, 10);                   //0ms, 10 nanoseconds of sleep.
 			} catch(InterruptedException e) {
 				// do nothing?
 			}
-
-
 		}
+
+		//no longer has connected flag set: try disconnecting cleanly
+		Disconnect();
+
+		return false;
 	}
 
 	public void Disconnect() {
@@ -136,7 +168,9 @@ public class TCPConnection {
 	}
 
 	public void QueueSend(Packet p) {
-		outgoingPackets.offer(p);
+		if(connected) {
+			outgoingPackets.offer(p);
+		}
 	}
 
 	private void Send(Packet p) {
@@ -144,9 +178,9 @@ public class TCPConnection {
 			m.appendLog("No connection!\n");
 			return;
 		}
-		m.appendLog("Attempting to send...\n");
+		//m.appendLog("Attempting to send...\n");
 
-		char[] buf = p.toBytes();
+		byte[] buf = p.toBytes();
 
 
 
@@ -159,13 +193,14 @@ public class TCPConnection {
 	}
 
 
-	private void Receive() {
-		char[] buf = new char[1];
+	private boolean Receive() {
+		byte[] buf = new byte[1];
+		boolean wasReady = false;
 
 		try {
 
-			while(in.ready()) {
-
+			while(in.available() > 0) {
+				wasReady = true;
 				in.read(buf, 0, 1);       //read a single character
 
 				if(collectingPacket) {
@@ -181,20 +216,27 @@ public class TCPConnection {
 				else if(buf[0] == 0x01) {      // start of a new transmission
 					m.appendLog("start of a packet received...\n");
 					collectingPacket = true;
-				} else if(buf[0] == 0x16) {     // syn_ack
+				}
+				else if(buf[0] == 0x16) {     // syn_ack
 					buf[0] = 0x16;          //SYN: synchronous ack for maintaining connection when no data is passed
 					out.write(buf, 0, 1);
 					out.flush();
 				}
 			}
 
+			if(wasReady) {
+				return true;
+			}
+
 		}catch(IOException e) {
-			//do nothing
+			m.appendLog("ERROR: " + e.getMessage());
+			return false;
 		}
+		return false;
 	}
 
 	private void processPacket() {
-		char id = buffer[0];
+		byte id = buffer[0];
 		int len = buffer[1];
 		int o = 0;
 
@@ -232,7 +274,7 @@ public class TCPConnection {
 		if(id == 0x16) {        // ditch early, this is just a syn_ack
 			Send(p);            // bounce it right back
 
-			char[] buf = new char[1];
+			byte[] buf = new byte[1];
 			buf[0] = 0x16;          //SYN: synchronous ack for maintaining connection when no data is passed
 			try {
 				out.write(buf, 0, 1);

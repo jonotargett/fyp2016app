@@ -5,4 +5,26 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_beep_maps">Mapbeep</string>
+
+    <string name="connect_toggle_off">Connect to Vehicle</string>
+    <string name="connect_toggle_on">Connected to Vehicle</string>
+    <string name="connect_toggle_progress">Connecting...</string>
+    <string name="stop_engine">Stop Engine</string>
+    <string name="handbrake_on">Handbrake On</string>
+    <string name="handbrake_off">Handbrake Off</string>
+    <string name="emergency_stop">Emergency Stop</string>
+
+    <string name="manual_controls_alttext">Manual Vehicle Controls</string>
+    <string name="manual_controls_heading">Vehicle Controls</string>
+    <string name="map_controls_alttext">Map Controls</string>
+    <string name="map_controls_heading">Map Controls</string>
+    <string name="settings_controls_alttext">Tools and Settings</string>
+    <string name="settings_controls_heading">Tools &amp; Connection Settings</string>
+    <string name="ip_label">IP:</string>
+    <string name="ip_dot">.</string>
+
+    <string name="default_ip0">192</string>
+    <string name="default_ip1">168</string>
+    <string name="default_ip2">1</string>
+    <string name="default_ip3">168</string>
 </resources>

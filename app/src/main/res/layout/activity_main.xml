@@ -23,17 +23,14 @@
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Emergency Stop"
+            android:id="@+id/emergencyStop"
+            android:text="@string/emergency_stop"
             android:layout_gravity="right"
             android:background="@drawable/menu_button"
-            android:backgroundTint="@color/colorHalt"
-            android:drawableTintMode="multiply"
-            android:drawableTint="@color/colorHalt"
-            android:backgroundTintMode="multiply"
-            android:foregroundTint="@color/colorHalt"
-            android:foregroundTintMode="multiply"
-            android:textColor="@color/colorHalt"
-            android:textStyle="bold"/>
+            android:textColor="@color/defaultAccent"
+            android:textStyle="bold"
+            android:textSize="10pt"
+            />
 
         </android.support.v7.widget.Toolbar>
 

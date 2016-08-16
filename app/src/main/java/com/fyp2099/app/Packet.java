@@ -2,6 +2,8 @@ package com.fyp2099.app;
 
 import android.util.Log;
 
+import java.util.Arrays;
+
 /**
  * Created by Jono on 15/08/2016.
  */
@@ -36,7 +38,8 @@ public class Packet {
 		}
 
 		length = l;
-		System.arraycopy(newData, 0, data, 0, length);
+		data = Arrays.copyOf(newData, l);
+		//System.arraycopy(newData, 0, data, 0, length);
 		return true;
 	}
 
@@ -52,12 +55,12 @@ public class Packet {
 		return (4 + length * 4);
 	}
 
-	char[] toBytes() {
-		char[] ret = new char[getByteLength()];
+	byte[] toBytes() {
+		byte[] ret = new byte[getByteLength()];
 
 		ret[0] = 0x01;                  // ID_SOH
-		ret[1] = (char)packetId.toByte();
-		ret[2] = (char)length;
+		ret[1] = (byte)packetId.toByte();
+		ret[2] = (byte)length;
 
 		int offset = 2;
 
@@ -65,10 +68,10 @@ public class Packet {
 			float f = data[i];
 
 			int bits = Float.floatToIntBits(f);
-			ret[++offset] = (char)(bits & 0xFF);
-			ret[++offset] = (char)((bits >> 8) & 0xFF);
-			ret[++offset] = (char)((bits >> 16) & 0xFF);
-			ret[++offset] = (char)((bits >> 24) & 0xFF);
+			ret[++offset] = (byte)(bits & 0xFF);
+			ret[++offset] = (byte)((bits >> 8) & 0xFF);
+			ret[++offset] = (byte)((bits >> 16) & 0xFF);
+			ret[++offset] = (byte)((bits >> 24) & 0xFF);
 		}
 
 		ret[++offset] = 0x17;           // ID_ETB
