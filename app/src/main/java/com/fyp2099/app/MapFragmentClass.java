@@ -3,6 +3,8 @@ package com.fyp2099.app;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.app.Fragment;
@@ -24,7 +26,14 @@ import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.maps.android.kml.KmlLayer;
 
+
+import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashSet;
 
 
@@ -33,7 +42,8 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 		GoogleMap.OnMapClickListener,
 		GoogleMap.OnPolygonClickListener,
 		GoogleMap.OnPolylineClickListener,
-		GoogleMap.OnMarkerClickListener {
+		GoogleMap.OnMarkerClickListener
+ {
 
 	private Main m;
 	private GoogleMap mMap;
@@ -44,10 +54,14 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 	private PolylineOptions pathOptions;
 	private Polyline path;
 	private Marker tempMark;
+	private Marker quadMark;
+	private PolylineOptions quadLineOptions;
+	private Polyline quadLine;
+	 LatLng central = new LatLng(-34.91702, 138.60391);
 
-	private HashSet<Polygon> zones;
-	private HashSet<Polyline> paths;
-	private HashSet<Marker> markers;
+	public HashSet<Polygon> zones;
+	public HashSet<Polyline> paths;
+	public HashSet<Marker> markers;
 
 
 	@Nullable
@@ -58,8 +72,6 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 		init();
 
 		return v;
-
-
 	}
 
 	public void setMain(Main main) {
@@ -72,6 +84,17 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 		markers = new HashSet<Marker>();
 		zones = new HashSet<Polygon>();
 		paths = new HashSet<Polyline>();
+
+		quadLineOptions = new PolylineOptions()
+				.color(getResources().getColor(R.color.map_quad_path_color))
+				.width(getResources().getDimension(R.dimen.map_stroke_width))
+				.clickable(false);
+	}
+
+	public void loadKML(Intent intent, Context c) {
+
+
+
 	}
 
 	private void setObjectsClickable(boolean set) {
@@ -259,6 +282,7 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 		confirmDelete.show();
 	}
 
+
 	@Override
 	public boolean onMarkerClick(Marker m) {
 		// this does literally nothing except 'consume' the click event
@@ -276,6 +300,39 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 		markers.add(m);
 	}
 
+	public void updateQuadPosition(float x, float y) {
+
+		// set central position
+		LatLng ll = central;
+
+		//offset with coordinates relative to
+		double r_earth = 6378000.0;
+		double latitude = ll.latitude + (y / r_earth) * (180 / Math.PI);
+		double longitude = ll.longitude + (x / r_earth) * (180 / Math.PI) / Math.cos(ll.latitude * Math.PI/180);
+
+		ll = new LatLng(latitude, longitude);
+		quadLineOptions.add(ll);
+
+		MarkerOptions newMarker = new MarkerOptions()
+				.position(ll)
+				.icon(BitmapDescriptorFactory.fromResource(R.mipmap.quad_pin))
+				.title("Quad bike position")
+				.flat(false);
+
+		try {
+			quadLine.remove();
+		} catch(NullPointerException e) {
+			// do nothing
+		}
+		try {
+			quadMark.remove();
+		} catch(NullPointerException e) {
+			// do nothing
+		}
+
+		quadMark = mMap.addMarker(newMarker);
+		quadLine = mMap.addPolyline(quadLineOptions);
+	}
 
 	private void addZonePoint(LatLng ll, boolean isFinal) {
 		if(isFinal) {
@@ -326,14 +383,24 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 		mMap.setMapType(type);
 	}
 
+	public void clearAll() {
+		for(Polyline p : paths) {
+			p.remove();
+		}
+		paths.clear();
 
+		for(Polygon p : zones) {
+			p.remove();
+		}
+		zones.clear();
+	}
 
 	@Override
 	public void onMapReady(GoogleMap googleMap) {
 		mMap = googleMap;
 
 		if(googleMap == null) {
-			Log.e("pork", "oprokros");
+			Log.e("GoogleMap", "Failed to load GoogleMap API");
 		}
 
 		//mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
@@ -346,7 +413,7 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 		}
 
 		// Add a marker in [UNIVERSITY OF ADELAIDE] and move the camera
-		LatLng central = new LatLng(-34.919, 138.603);
+
 		mMap.addMarker(new MarkerOptions().position(central).title("University of Adelaide")).setDraggable(true);
 		mMap.moveCamera(CameraUpdateFactory.newLatLng(central));
 		mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(central, 15.0f));
@@ -370,6 +437,7 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 
 // Get back the mutable Polyline
 		Polygon polygon = mMap.addPolygon(rectOptions);
+		zones.add(polygon);
 
 		PolylineOptions lineOptions = new PolylineOptions()
 				.add(new LatLng(-34.915142, 138.587171))
@@ -379,6 +447,18 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 				.clickable(true);
 
 		Polyline polyline = mMap.addPolyline(lineOptions);
+		paths.add(polyline);
+
+
+		lineOptions = new PolylineOptions()
+				.add(new LatLng(-34.9151, 138.587))
+				.add(new LatLng(-34.9140, 138.611))
+				.color(getResources().getColor(R.color.map_path_outline))
+				.width(getResources().getDimension(R.dimen.map_stroke_width))
+				.clickable(true);
+
+		polyline = mMap.addPolyline(lineOptions);
+		paths.add(polyline);
 	}
 
 

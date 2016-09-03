@@ -101,6 +101,20 @@
                     android:id="@+id/textView4"
                     />
 
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="@string/speed_label"
+                    android:id="@+id/speedLabel"
+                    />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="@string/heading_label"
+                    android:id="@+id/headingLabel"
+                    />
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -186,27 +200,35 @@
                         android:textOn="Finished"
                         android:id="@+id/togglePath"
                         android:checked="false"/>
+
+                    <ToggleButton
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Map Mode"
+                        android:textOff="Satellite Map"
+                        android:textOn="Road Map"
+                        android:id="@+id/mapTypeButton"/>
                 </LinearLayout>
 
                 <Button
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:text="Clear all"
+                    android:id="@+id/clearPathsAndZones"/>
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:text="Generate Route"
-                    android:id="@+id/button"/>
+                    android:id="@+id/generateRoute"/>
 
                 <Button
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Begin Scanning"
-                    android:id="@+id/button4"/>
+                    android:id="@+id/beginRoute"/>
 
-                <ToggleButton
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Map Mode"
-                    android:textOff="Satellite Map"
-                    android:textOn="Road Map"
-                    android:id="@+id/mapTypeButton"/>
+
 
 
             </LinearLayout>

@@ -16,4 +16,5 @@
     <color name="map_path_outline">@color/colorPrimary</color>
     <color name="map_szone_outline">@color/colorAccent</color>
     <color name="map_szone_fill">#7F54D4FF</color>
+    <color name="map_quad_path_color">#40FF81</color>
 </resources>

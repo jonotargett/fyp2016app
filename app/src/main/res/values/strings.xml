@@ -22,9 +22,16 @@
     <string name="settings_controls_heading">Tools &amp; Connection Settings</string>
     <string name="ip_label">IP:</string>
     <string name="ip_dot">.</string>
+    <string name="speed_label">Speed:</string>
+    <string name="heading_label">Heading:</string>
 
-    <string name="default_ip0">192</string>
-    <string name="default_ip1">168</string>
-    <string name="default_ip2">1</string>
-    <string name="default_ip3">168</string>
+    <string name="default_ip0">129</string>
+    <string name="default_ip1">127</string>
+    <string name="default_ip2">230</string>
+    <string name="default_ip3">65</string>
+    <string name="ip0">ip0</string>
+    <string name="ip1">ip1</string>
+    <string name="ip2">ip2</string>
+    <string name="ip3">ip3</string>
+
 </resources>

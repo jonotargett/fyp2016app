@@ -37,6 +37,7 @@ public class TCPConnection {
 	public static final int SLEEP_DURATION = 20;    // milliseconds?
 	public static final int RECONNECT_TIMEOUT = 1000;
 	public static final int DISCONNECT_TIMEOUT = 6000; // also milliseocnds
+	public static final int DATA_UPDATE_PERIOD = 500;
 
 	public InetAddress serverAddr;
 	public Socket socket;
@@ -53,6 +54,7 @@ public class TCPConnection {
 
 	private long t1;
 	private long t2;
+	private long tLastQuadReq;
 
 	private Main m;
 
@@ -84,8 +86,10 @@ public class TCPConnection {
 
 			//THIS PART IS VERY MUCH REQUIRED. FIRST SENT NEEDS TO BE SYN_ACK OR WILL BE
 			// REJECTED, EITHER BY BAD ACCEPT OR TIMEOUT
-			out.write((byte)'\16');
-			out.flush();
+			//out.write((byte)'\16');
+			//out.flush();
+			Packet p = new Packet(PacketID.ID_IDLE);
+			QueueSend(p);
 		}
 		catch(SocketTimeoutException e) {
 			Log.i("NETWORK", "could not resolve host");
@@ -109,6 +113,7 @@ public class TCPConnection {
 		connected = true;
 
 		t1 = SystemClock.elapsedRealtime();
+		tLastQuadReq = t1;
 		return true;
 		//connectionLoop();
 	}
@@ -117,7 +122,7 @@ public class TCPConnection {
 		while(connected) {
 			t2 = SystemClock.elapsedRealtime();
 
-			//check for incoming/outgoing messages
+			//check for incoming/outgoing messages -----------------------------------------------
 			boolean r = Receive();
 			if(!r) {
 				if(t2 > (t1 + RECONNECT_TIMEOUT)) {        // havent received anything for a while
@@ -137,12 +142,33 @@ public class TCPConnection {
 				t1 = SystemClock.elapsedRealtime();
 			}
 
+
+			// send outgoing messages ------------------------------------------------------------
+			if(t2 > (tLastQuadReq + DATA_UPDATE_PERIOD)) {
+				Packet p1 = new Packet(PacketID.ID_REQ_QUAD_SPEED);
+				Packet p2 = new Packet(PacketID.ID_REQ_QUAD_HEADING);
+				Packet p3 = new Packet(PacketID.ID_REQ_QUAD_POSITION);
+
+				QueueSend(p1);
+				QueueSend(p2);
+				QueueSend(p3);
+
+				tLastQuadReq = t2;
+			}
+
 			while(outgoingPackets.peek() != null) {
 				Send(outgoingPackets.poll());
+				try {
+					Thread.sleep(0, 100);
+				} catch(InterruptedException e) {
+					// do nothing?
+				}
 			}
 
 
-			// sleep for a bit to stop the thread from going crazy
+
+
+			// sleep for a bit to stop the thread from going crazy -------------------------------
 			try {
 				Thread.sleep(0, 10);                   //0ms, 10 nanoseconds of sleep.
 			} catch(InterruptedException e) {
@@ -182,13 +208,12 @@ public class TCPConnection {
 
 		byte[] buf = p.toBytes();
 
-
-
 		try {
 			out.write(buf, 0, p.getByteLength());
 			out.flush();
 		} catch(IOException e) {
-			//do nothing
+			Log.e("packet send ERROR", e.getMessage());
+			m.appendLog(e.getMessage() + "\n");
 		}
 	}
 
@@ -214,13 +239,13 @@ public class TCPConnection {
 					}
 				}
 				else if(buf[0] == 0x01) {      // start of a new transmission
-					m.appendLog("start of a packet received...\n");
+					//m.appendLog("start of a packet received...\n");
 					collectingPacket = true;
 				}
 				else if(buf[0] == 0x16) {     // syn_ack
-					buf[0] = 0x16;          //SYN: synchronous ack for maintaining connection when no data is passed
-					out.write(buf, 0, 1);
-					out.flush();
+					//buf[0] = 0x16;          //SYN: synchronous ack for maintaining connection when no data is passed
+					//out.write(buf, 0, 1);
+					//out.flush();
 				}
 			}
 
@@ -238,20 +263,23 @@ public class TCPConnection {
 	private void processPacket() {
 		byte id = buffer[0];
 		int len = buffer[1];
-		int o = 0;
+		int o = 2;
 
 		Packet p = new Packet();
 		p.setID(PacketID.valueOf(id));
 		float f[] = new float[len];
 		int fo = 0;
 
-		if(offset != len*4+3) {
+		if(offset != len*4+2) {
 			m.appendLog("Invalid packet received!\n");
 
 			offset = 0;
 			return;
 		}
-		m.appendLog("full packet being processed...\n");
+		//m.appendLog("full packet being processed...\n");
+		//m.appendLog("Length " + len + " floats\n");
+		//m.appendLog(":: " + (len*4+2) + " / " + offset +"\n");
+
 
 		while(o < offset-1) {
 			byte b0 = (byte)buffer[o++];
@@ -259,14 +287,17 @@ public class TCPConnection {
 			byte b2 = (byte)buffer[o++];
 			byte b3 = (byte)buffer[o++];
 
+
 			int asInt = (b0 & 0xFF)
 					| ((b1 & 0xFF) << 8)
 					| ((b2 & 0xFF) << 16)
 					| ((b3 & 0xFF) << 24);
 
 			float nf = Float.intBitsToFloat(asInt);
-			f[fo++] = nf;
+			f[fo] = nf;
+			fo++;
 		}
+
 
 		offset = 0;
 		p.setData(f);
@@ -274,6 +305,7 @@ public class TCPConnection {
 		if(id == 0x16) {        // ditch early, this is just a syn_ack
 			Send(p);            // bounce it right back
 
+			/*
 			byte[] buf = new byte[1];
 			buf[0] = 0x16;          //SYN: synchronous ack for maintaining connection when no data is passed
 			try {
@@ -282,6 +314,7 @@ public class TCPConnection {
 			} catch(IOException e){
 				//nothing
 			}
+			*/
 
 			return;
 		}
@@ -289,5 +322,6 @@ public class TCPConnection {
 		// a legitimate info packet
 		// let the ui thread handle this
 		m.handlePacket(p);
+
 	}
 }
