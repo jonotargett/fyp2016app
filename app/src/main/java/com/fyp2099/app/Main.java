@@ -64,6 +64,7 @@ public class Main extends AppCompatActivity {
 	private Button clearAllButton;
 	private Button generateButton;
 	private Button beginButton;
+	private Button resetGPSButton;
 	public ToggleButton zoneMode;
 	public ToggleButton pathMode;
 	private ToggleButton connectToggle;
@@ -193,6 +194,7 @@ public class Main extends AppCompatActivity {
 		et_ip2 = (EditText) findViewById(R.id.ip3);
 		et_ip3 = (EditText) findViewById(R.id.ip4);
 
+		resetGPSButton = (Button)findViewById(R.id.rgpspos);
 		debug1 = (Button)findViewById(R.id.debugButton1);
 		debug2 = (Button)findViewById(R.id.debugButton2);
 		TV = (TextView)findViewById(R.id.textView);
@@ -209,6 +211,7 @@ public class Main extends AppCompatActivity {
 		debug2.setOnClickListener(button_listener);
 		emergencyStopButton.setOnClickListener(button_listener);
 		stopEngineButton.setOnClickListener(button_listener);
+		resetGPSButton.setOnClickListener(button_listener);
 
 		clearAllButton.setOnClickListener(button_listener);
 		generateButton.setOnClickListener(button_listener);
@@ -291,6 +294,9 @@ public class Main extends AppCompatActivity {
 					IB0.setBackground(getResources().getDrawable(R.drawable.menu_button_selected));
 					IB1.setBackground(getResources().getDrawable(R.drawable.menu_button));
 					IB2.setBackground(getResources().getDrawable(R.drawable.menu_button));
+
+					p = new Packet(PacketID.ID_MANUALCONTROL_ON);
+					conn.QueueSend(p);
 					break;
 				case R.id.imageButton2:
 					VF.setDisplayedChild(1);
@@ -344,41 +350,58 @@ public class Main extends AppCompatActivity {
 					p = new Packet(PacketID.ID_CLEAR_NAV_POINTS);
 					conn.QueueSend(p);
 					break;
+				case R.id.generateRoute:
+					for(Polyline poly : MF.paths) {
+						p = new Packet(PacketID.ID_NAV_PATH);
+						List<LatLng> points = poly.getPoints();
+						double[] data = new double[points.size()*2];
+						int offset = 0;
+						for(LatLng ll : points) {
+							data[offset++] = ll.latitude;
+							data[offset++] = ll.longitude;
+						}
+						p.setData(data);
+						conn.QueueSend(p);
+					}
+					for(Polygon poly : MF.zones) {
+						p = new Packet(PacketID.ID_NAV_ZONE);
+						List<LatLng> points = poly.getPoints();
+						double[] data = new double[points.size()*2];
+						int offset = 0;
+						for(LatLng ll : points) {
+							data[offset++] = ll.latitude;
+							data[offset++] = ll.longitude;
+						}
+						p.setData(data);
+						conn.QueueSend(p);
+					}
+					p = new Packet(PacketID.ID_NAV_GENERATE);
+					conn.QueueSend(p);
+
+					break;
 				case R.id.beginRoute:
 					if(isNavigating) {
 						beginButton.setText("Begin Scanning");
+						generateButton.setEnabled(true);
+						p = new Packet(PacketID.ID_AUTO_NAV_OFF);
+						conn.QueueSend(p);
 					} else {
 						beginButton.setText("Pause Scanning");
-						for(Polyline poly : MF.paths) {
-							p = new Packet(PacketID.ID_NAV_PATH);
-							List<LatLng> points = poly.getPoints();
-							double[] data = new double[points.size()*2];
-							int offset = 0;
-							for(LatLng ll : points) {
-								data[offset++] = ll.latitude;
-								data[offset++] = ll.longitude;
-							}
-							p.setData(data);
-							conn.QueueSend(p);
-						}
-						for(Polygon poly : MF.zones) {
-							p = new Packet(PacketID.ID_NAV_ZONE);
-							List<LatLng> points = poly.getPoints();
-							double[] data = new double[points.size()*2];
-							int offset = 0;
-							for(LatLng ll : points) {
-								data[offset++] = ll.latitude;
-								data[offset++] = ll.longitude;
-							}
-							p.setData(data);
-							conn.QueueSend(p);
-						}
+						generateButton.setEnabled(false);
+						p = new Packet(PacketID.ID_AUTO_NAV_ON);
+						conn.QueueSend(p);
 					}
 					break;
 				case R.id.joystickButton:
 					p = new Packet(PacketID.ID_BRAKE);
 					conn.QueueSend(p);
 					break;
+				case R.id.rgpspos: {
+					p = new Packet(PacketID.ID_QUAD_POSITION);
+					//send the position data
+					conn.QueueSend(p);
+					break;
+				}
 				default:
 					VF.setDisplayedChild(0);
 			}
