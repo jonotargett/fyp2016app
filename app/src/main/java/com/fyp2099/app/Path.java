@@ -2,7 +2,9 @@ package com.fyp2099.app;
 
 import android.content.Context;
 import android.location.Location;
+import android.util.Log;
 
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
@@ -20,9 +22,53 @@ import com.google.android.gms.maps.model.PolylineOptions;
 public class Path extends NavigationObject {
 
 	public Polyline poly;
+	private PolylineOptions opts;
+	public boolean isGenerated;
 
 	public Path(Context c) {
 		super(c);
+		isZone = false;
+		isGenerated = false;
+	}
+
+
+	public void addToMap(GoogleMap map) {
+
+		// get the display options prepared
+		opts = new PolylineOptions()
+				.clickable(true);
+
+		if(isGenerated) {
+			opts.color(context.getResources().getColor(R.color.map_path_outline))
+					.width(context.getResources().getDimension(R.dimen.map_gen_stroke_width));
+		} else {
+			opts.color(context.getResources().getColor(R.color.map_zone_outline))
+					.width(context.getResources().getDimension(R.dimen.map_stroke_width));
+		}
+
+		// add all of the defined points into the display model
+		for(LatLng ll : points) {
+			opts.add(ll);
+		}
+
+		// attempt to remove the previous polygon from the map (if it exists)
+		try {
+			poly.remove();
+		} catch (NullPointerException e) {
+			Log.i("Null Pointer", "path doesnt exist yet");
+		}
+
+		// add the new polygon to the map, retrieve the handle
+		poly = map.addPolyline(opts);
+
+	}
+
+	public void removeFromMap() {
+		try {
+			poly.remove();
+		} catch (NullPointerException e) {
+			Log.i("Null Pointer", "path doesnt exist yet");
+		}
 	}
 
 	@Override

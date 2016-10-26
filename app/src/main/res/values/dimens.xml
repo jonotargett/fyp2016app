@@ -10,5 +10,6 @@
     <dimen name="button_horizontal_padding">15dp</dimen>
     <dimen name="button_vertical_padding">5dp</dimen>
     <dimen name="map_stroke_width">5px</dimen>
+    <dimen name="map_gen_stroke_width">2px</dimen>
     <dimen name="menu_margin_sep">20dp</dimen>
 </resources>

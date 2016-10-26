@@ -16,6 +16,7 @@ public class NavigationObject {
 
 	protected List<LatLng> points;
 	protected Context context;
+	public boolean isZone;
 
 	public NavigationObject(Context c) {
 		points = new ArrayList<LatLng>();

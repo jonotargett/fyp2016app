@@ -26,6 +26,7 @@ public class Zone extends NavigationObject {
 
 	public Zone(Context c) {
 		super(c);
+		isZone = true;
 	}
 
 	public void addToMap(GoogleMap map) {
@@ -91,11 +92,12 @@ public class Zone extends NavigationObject {
 	}
 
 	private boolean sameSide(LatLng pos, int edge) {
-		edge = edge % 3;
+		int n = numPoints();
+		edge = edge % n;
 
-		LatLng a = getPoint((edge + 0) % 3);
-		LatLng b = getPoint((edge + 1) % 3);
-		LatLng c = getPoint((edge + 2) % 3);
+		LatLng a = getPoint((edge + 0) % n);
+		LatLng b = getPoint((edge + 1) % n);
+		LatLng c = getPoint((edge + 2) % n);
 
 		// ALGORITHM IS:
 		//cp1 = CrossProduct(b-a, p1-a)
@@ -122,13 +124,21 @@ public class Zone extends NavigationObject {
 	}
 
 	public boolean contains(LatLng pos) {
-		if(numPoints() != 3) {   // only for triangular decomposititions atm
-			return false;
+		//if(numPoints() != 3) {   // only for triangular decomposititions atm
+		//	return false;
+		//}
+
+		// CHANGED: ONLY WORKS FOR THINGS THAT ARE ALREADY CONVEX
+
+		for(int i=0; i<numPoints(); i++) {
+			if(!sameSide(pos, i)) {
+				return false;
+			}
 		}
 
-		if(!sameSide(pos, 0)) return false;
-		if(!sameSide(pos, 1)) return false;
-		if(!sameSide(pos, 2)) return false;
+		//if(!sameSide(pos, 0)) return false;
+		//if(!sameSide(pos, 1)) return false;
+		//if(!sameSide(pos, 2)) return false;
 
 		return true;
 	}
@@ -278,6 +288,7 @@ public class Zone extends NavigationObject {
 
 		Log.e("Iterations", "" + c);
 		Log.e("Number of triangles", "" + convexZones.size());
+
 
 
 		// DECOMPOSITION ---------------------------------------------------------------------

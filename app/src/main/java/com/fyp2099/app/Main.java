@@ -361,6 +361,8 @@ public class Main extends AppCompatActivity {
 					conn.QueueSend(p);
 					break;
 				case R.id.generateRoute:
+					MF.generatePath();
+					/*
 					for(Polyline poly : MF.paths) {
 						p = new Packet(PacketID.ID_NAV_PATH);
 						List<LatLng> points = poly.getPoints();
@@ -387,7 +389,7 @@ public class Main extends AppCompatActivity {
 					}
 					p = new Packet(PacketID.ID_NAV_GENERATE);
 					conn.QueueSend(p);
-
+					*/
 					break;
 				case R.id.beginRoute:
 					if(isNavigating) {

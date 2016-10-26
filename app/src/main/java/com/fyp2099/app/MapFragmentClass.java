@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -52,8 +53,7 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 	private boolean zoneLayingState;
 	private boolean pathLayingState;
 
-	private PolylineOptions pathOptions;
-	private Polyline path;
+
 	private Marker tempMark;
 	private Marker quadMark;
 	private PolylineOptions quadLineOptions;
@@ -62,19 +62,57 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 	 LatLng quadPos = new LatLng(-34.91702, 138.60391);
 
 	//public HashSet<Polygon> zones;
-	public HashSet<Polyline> paths;
+	public ArrayList<Path> paths;
 	public HashSet<Marker> markers;
 	public ArrayList<Zone> zones;
 	//private PolygonOptions zoneOptions;
 	private Zone zone;
+	 private Path path;
 	 private Path genPath;
 	 private LatLng curPos;
+	 private LatLng forwardVec;
+	 private LatLng downVec;
 
+	 private final double width = 2.0;
+	 private final double minimumTravel = 1.0;
+	 private final int maxSearchForAcutes = 100;
+
+
+	 private LatLng addMetres(LatLng ll, double x, double y) {
+		 //offset with coordinates relative to
+		 double r_earth = 6378000.0;
+		 double latitude = ll.latitude + (y / r_earth) * (180 / Math.PI);
+		 double longitude = ll.longitude + (x / r_earth) * (180 / Math.PI) / Math.cos(ll.latitude * Math.PI/180);
+
+		 return new LatLng(latitude, longitude);
+	 }
+
+	 private LatLng addBearingDistance(LatLng ll, double bearing, double metres) {
+
+		 //bearing is degree east of true north.
+		 double x = metres * Math.sin(bearing);
+		 double y = metres * Math.cos(bearing);
+
+		 double r_earth = 6378000.0;
+		 double latitude = ll.latitude + (y / r_earth) * (180 / Math.PI);
+		 double longitude = ll.longitude + (x / r_earth) * (180 / Math.PI) / Math.cos(ll.latitude * Math.PI/180);
+
+		 return new LatLng(latitude, longitude);
+	 }
 
 	 public void generatePath() {
-		 ArrayList<Zone> cz = new ArrayList<Zone>();
+		 genPath.removeFromMap();
 
-		 Collections.copy(cz, zones);
+		 genPath = new Path(getActivity().getApplicationContext());
+
+		 ArrayList<NavigationObject> cz = new ArrayList<NavigationObject>();
+
+		 for(Zone z : zones) {
+			 cz.add(z);
+		 }
+		 for(Path p : paths) {
+			 cz.add(p);
+		 }
 
 
 		 genPath.addPoint(quadPos);
@@ -84,6 +122,7 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 		 curPos = quadPos;
 
 		 while(cz.size() > 0) {
+			 Log.i("size: ", "" + cz.size() + " zones");
 
 			 int polyIndex = -1;
 			 double minDistance = Double.MAX_VALUE;
@@ -91,17 +130,16 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 
 			 for(int i=0; i<cz.size(); i++) {
 
-				 Zone p = cz.get(i);
+				 NavigationObject p = cz.get(i);
+				 Log.i("size: ", "p has " + p.numPoints() + " points");
 
-				 for(int j=0; j<p.numPoints(); j++) {
-					 double distance = Math.sqrt( Math.pow(curPos.latitude - p.getPoint(j).latitude, 2) +
-							 Math.pow(curPos.longitude - p.getPoint(j).longitude, 2) );
+				 LatLng closePoint = p.getNearestPoint(curPos);
+				 double distance = Math.sqrt( Math.pow(curPos.latitude - closePoint.latitude, 2) +
+							 Math.pow(curPos.longitude - closePoint.longitude, 2) );
 
-					 if(distance < minDistance) {
-						 minDistance = distance;
-						 polyIndex = i;
-						 index = j;
-					 }
+				 if(distance < minDistance) {
+					 minDistance = distance;
+					 polyIndex = i;
 				 }
 			 }
 
@@ -109,10 +147,222 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 			 cz.remove(polyIndex);
 		 }
 
+		 genPath.isGenerated = true;
+		 genPath.addToMap(mMap);
+
 		 //path.addPoint(new Point2D.Double(100, 100));
 	 }
 
+	 private void lineSearch(NavigationObject p) {
+		 if(p.isZone) {
+			 lineSearch((Zone)p);
+		 } else {
+			 lineSearch((Path)p);
+		 }
+	 }
+
+	 private void lineSearch(Path p) {
+		 if(p.numPoints() < 2) {
+			 return;
+		 }
+
+		 int i;
+		 if(p.getNearestPoint(curPos) == p.getPoint(0)) {
+			 for(i=0; i<p.numPoints();i++) {
+				 genPath.addPoint(p.getPoint(i));
+			 }
+			 curPos = p.getPoint(p.numPoints()-1);
+		 } else {
+			 for(i=p.numPoints()-1; i>=0;i--) {
+				 genPath.addPoint(p.getPoint(i));
+			 }
+			 curPos = p.getPoint(0);
+		 }
+
+	 }
+
 	 private void lineSearch(Zone p) {
+		 //discover the closest entry point (a polygon corner) ---------------------------
+
+		 double minDistance = Double.MAX_VALUE;
+		 int index = -1;
+
+		 for(int i=0; i<p.numPoints(); i++) {
+			 double distance = Math.sqrt( Math.pow(curPos.latitude - p.getPoint(i).latitude, 2) +
+					 Math.pow(curPos.longitude - p.getPoint(i).longitude, 2) );
+
+			 if(distance < minDistance) {
+				 minDistance = distance;
+				 index = i;
+			 }
+		 }
+
+		 curPos = new LatLng(p.getPoint(index).latitude, p.getPoint(index).longitude);
+
+
+		 genPath.addPoint(new LatLng(curPos.latitude, curPos.longitude));
+
+		 // -----------------------------------------------------------------------------
+		 // get scanline vectors, ie forward, and down (next line)
+
+		 int nextPoint = index + 1;
+		 if(nextPoint >= p.numPoints())
+			 nextPoint = 0;
+
+		 int prevPoint = index - 1;
+		 if(prevPoint < 0)
+			 prevPoint = p.numPoints()-1;
+
+		 // get a forward vector and normalise it
+		 //forwardVec = new LatLng(p.getPoint(nextPoint).latitude - curPos.latitude,
+		//		 p.getPoint(nextPoint).longitude - curPos.longitude);
+		 //double length = Math.sqrt(Math.pow(forwardVec.latitude, 2) +
+		//		 Math.pow(forwardVec.longitude, 2));
+
+		 float[] results = new float[3];
+		 Location.distanceBetween(curPos.latitude, curPos.longitude, p.getPoint(nextPoint).latitude, p.getPoint(nextPoint).longitude, results);
+		 double forwardBearing = results[1];
+
+		 forwardVec = new LatLng(Math.cos(Math.toRadians(forwardBearing)), Math.sin(Math.toRadians(forwardBearing)));
+		 //forwardVec = new LatLng(forwardVec.latitude / length, forwardVec.latitude/length);
+
+		 downVec = new LatLng(forwardVec.longitude, -forwardVec.latitude);
+
+		 // double check that the 'downVec' actually points into the shape, rather than outside
+
+		 //LatLng compVec = new LatLng(p.getPoint(prevPoint).latitude - curPos.latitude,
+		//		 p.getPoint(prevPoint).longitude - curPos.longitude);
+
+		 float[] results2 = new float[3];
+		 Location.distanceBetween(curPos.latitude, curPos.longitude, p.getPoint(prevPoint).latitude, p.getPoint(prevPoint).longitude, results2);
+		 double compBearing = results2[1];
+
+		 LatLng compVec = new LatLng(Math.cos(Math.toRadians(compBearing)), Math.sin(Math.toRadians(compBearing)));
+
+
+		 double dotProduct = compVec.latitude * downVec.latitude + compVec.longitude * downVec.longitude;
+
+		 if(dotProduct < 0) {
+			 // then the vectors do no point in the same direction (ie totally opposed)
+			 downVec = new LatLng(-downVec.latitude, -downVec.longitude);
+		 }
+
+
+		 //LatLng tempPos = addMetres(curPos, forwardVec.longitude*results[0], forwardVec.latitude*results[0]);
+
+		 //genPath.addPoint(new LatLng(tempPos.latitude, tempPos.longitude));
+		 //genPath.addPoint(new LatLng(curPos.latitude, curPos.longitude));
+
+		 //tempPos = addMetres(curPos, downVec.longitude*100, downVec.latitude*100);
+		 //genPath.addPoint(new LatLng(tempPos.latitude, tempPos.longitude));
+		 //genPath.addPoint(new LatLng(curPos.latitude, curPos.longitude));
+
+
+		 // -------------------------------------------------------------------------------
+		 //start mapping out the path;
+
+		 // adjust for the potential of starting on an acute angle
+		 int steps = 0;
+
+		 // travel inwards
+		 //curPos = new LatLng(curPos.latitude + downVec.latitude*width,
+		//		 curPos.longitude + downVec.longitude*width);
+		 curPos = addMetres(curPos, downVec.longitude*width, downVec.latitude*width);
+
+		 while( !p.contains(curPos) ) {
+			 if(steps > maxSearchForAcutes)
+				 break;
+
+			 //curPos = new LatLng(curPos.latitude + forwardVec.latitude * minimumTravel,
+			//		 curPos.longitude + forwardVec.longitude*minimumTravel);
+			 curPos = addMetres(curPos, forwardVec.longitude*minimumTravel, forwardVec.latitude*minimumTravel);
+			 steps++;
+		 }
+
+
+		 genPath.addPoint(new LatLng(curPos.latitude, curPos.longitude));
+
+		 int rows = 0;
+
+
+
+		 while( true ) {
+
+			 Log.w("TRAVEL", "row " + rows + " ---------------");
+			 if(rows > 0) {
+				 // travel inwards
+				 //curPos = new LatLng(curPos.latitude+downVec.latitude*width,
+				//		 curPos.longitude+downVec.longitude*width);
+				 curPos = addMetres(curPos, downVec.longitude*width, downVec.latitude*width);
+				 Log.w("TRAVEL", "travel inwards");
+			 }
+
+			 genPath.addPoint(new LatLng(curPos.latitude, curPos.longitude));
+
+			 // these next two lines make the 'forwards' direction alternate between rows
+			 int direction = (rows % 2);
+			 if(direction == 0) {direction = -1; }
+			 direction *= -1;
+
+			 steps = 0;
+			 int waste = 0;
+
+			 while( p.contains(curPos)) {
+				 //curPos = new LatLng(curPos.latitude + forwardVec.latitude*minimumTravel*direction,
+				//		 curPos.longitude+forwardVec.longitude*minimumTravel*direction);
+				 curPos = addMetres(curPos,forwardVec.longitude*minimumTravel*direction, forwardVec.latitude*minimumTravel*direction);
+				 steps++;
+
+				 waste++;
+				 if(waste > 1000) {
+					 //System.out.println("Wasdasste");
+				 }
+			 }
+			 Log.w("TRAVEL", "moved forwards");
+
+			 // take a step back to avoid overshoot
+			 //curPos = new LatLng(curPos.latitude - forwardVec.latitude*minimumTravel*direction,
+			//		 curPos.longitude-forwardVec.longitude*minimumTravel*direction);
+			 curPos = addMetres(curPos,-forwardVec.longitude*minimumTravel*direction, -forwardVec.latitude*minimumTravel*direction);
+
+
+			 //LatLng tempPos = new LatLng(curPos.latitude+downVec.latitude*width,
+				//	 curPos.longitude+downVec.longitude*width);
+			 LatLng tempPos = addMetres(curPos, downVec.longitude*width, downVec.latitude*width);
+
+			 while( !p.contains(tempPos) ) {
+				 if(steps <= 0)
+					 break;
+
+				 //curPos = new LatLng(curPos.latitude - forwardVec.latitude*minimumTravel*direction,
+				//		 curPos.longitude-forwardVec.longitude*minimumTravel*direction);
+				 curPos = addMetres(curPos,-forwardVec.longitude*minimumTravel*direction, -forwardVec.latitude*minimumTravel*direction);
+				 tempPos = addMetres(curPos, downVec.longitude*width, downVec.latitude*width);
+
+				 //genPath.addPoint(new LatLng(curPos.latitude, curPos.longitude));
+
+				 steps--;
+
+				 waste++;
+				 if(waste > 1000) {
+					 //System.out.println("Wasteedede");
+				 }
+			 }
+
+
+			 genPath.addPoint(new LatLng(curPos.latitude, curPos.longitude));
+
+			 if(steps < 1) {
+				 Log.w("TRAVEL", "NO STEPS TAKEN. EXITING LOOP -------");
+				 break;
+			 }
+
+
+			 rows++;
+
+
+		 }
+
 
 	 }
 
@@ -134,8 +384,7 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 		zoneLayingState = false;
 
 		markers = new HashSet<Marker>();
-		//zones = new HashSet<Polygon>();
-		paths = new HashSet<Polyline>();
+		paths = new ArrayList<Path>();
 		zones = new ArrayList<Zone>();
 
 		quadLineOptions = new PolylineOptions()
@@ -160,8 +409,8 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 		for(Zone z : zones) {
 			z.poly.setClickable(set);
 		}
-		for(Polyline p : paths) {
-			p.setClickable(set);
+		for(Path p : paths) {
+			p.poly.setClickable(set);
 		}
 	}
 
@@ -201,11 +450,9 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 			pathLayingState = true;
 
 			setObjectsClickable(false);
+			path = new Path(getActivity().getApplicationContext());
 
-			pathOptions = new PolylineOptions()
-					.color(getResources().getColor(R.color.map_path_outline))
-					.width(getResources().getDimension(R.dimen.map_stroke_width))
-					.clickable(true);
+
 		} else {
 			addPathPoint(new LatLng(0, 0), true);
 		}
@@ -276,8 +523,13 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 				.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
-						paths.remove(p);
 						p.remove();
+						for(Path pa : paths) {
+							if(pa.poly.equals(p)) {
+								paths.remove(pa);
+								break;
+							}
+						}
 						Log.i("Path Clicked", "Path Count: " + paths.size());
 						dialog.dismiss();
 					}
@@ -411,38 +663,20 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 
 		zone.addPoint(ll);
 		zone.addToMap(mMap);
-		/*
-		zone.opts.add(ll);
-		try {
-			zone.poly.remove();
-		} catch (NullPointerException e) {
-			Log.i("Null Pointer", "zone doesnt exist yet");
-		}
-
-		zone.poly = mMap.addPolygon(zone.opts);
-		*/
 	}
 
 	private void addPathPoint(LatLng ll, boolean isFinal) {
 		if(isFinal) {
-			path.setClickable(true);
 			paths.add(path);
 			path = null;
 			pathLayingState = false;
-			pathOptions = null;
 			m.pathMode.setChecked(false);
 			setObjectsClickable(true);
 			return;
 		}
 
-		pathOptions.add(ll);
-		try {
-			path.remove();
-		} catch (NullPointerException e) {
-			Log.i("Null Pointer", "zone doesnt exist yet");
-		}
-
-		path = mMap.addPolyline(pathOptions);
+		path.addPoint(ll);
+		path.addToMap(mMap);
 	}
 
 
@@ -451,8 +685,8 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 	}
 
 	public void clearAll() {
-		for(Polyline p : paths) {
-			p.remove();
+		for(Path p : paths) {
+			p.poly.remove();
 		}
 		paths.clear();
 
