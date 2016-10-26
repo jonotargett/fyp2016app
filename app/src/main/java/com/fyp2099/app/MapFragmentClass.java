@@ -34,6 +34,8 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 
 
@@ -49,8 +51,7 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 	private GoogleMap mMap;
 	private boolean zoneLayingState;
 	private boolean pathLayingState;
-	private PolygonOptions zoneOptions;
-	private Polygon zone;
+
 	private PolylineOptions pathOptions;
 	private Polyline path;
 	private Marker tempMark;
@@ -58,11 +59,62 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 	private PolylineOptions quadLineOptions;
 	private Polyline quadLine;
 	 LatLng central = new LatLng(-34.91702, 138.60391);
+	 LatLng quadPos = new LatLng(-34.91702, 138.60391);
 
-	public HashSet<Polygon> zones;
+	//public HashSet<Polygon> zones;
 	public HashSet<Polyline> paths;
 	public HashSet<Marker> markers;
+	public ArrayList<Zone> zones;
+	//private PolygonOptions zoneOptions;
+	private Zone zone;
+	 private Path genPath;
+	 private LatLng curPos;
 
+
+	 public void generatePath() {
+		 ArrayList<Zone> cz = new ArrayList<Zone>();
+
+		 Collections.copy(cz, zones);
+
+
+		 genPath.addPoint(quadPos);
+		 //lineSearch(zone);
+
+
+		 curPos = quadPos;
+
+		 while(cz.size() > 0) {
+
+			 int polyIndex = -1;
+			 double minDistance = Double.MAX_VALUE;
+			 int index = -1;
+
+			 for(int i=0; i<cz.size(); i++) {
+
+				 Zone p = cz.get(i);
+
+				 for(int j=0; j<p.numPoints(); j++) {
+					 double distance = Math.sqrt( Math.pow(curPos.latitude - p.getPoint(j).latitude, 2) +
+							 Math.pow(curPos.longitude - p.getPoint(j).longitude, 2) );
+
+					 if(distance < minDistance) {
+						 minDistance = distance;
+						 polyIndex = i;
+						 index = j;
+					 }
+				 }
+			 }
+
+			 lineSearch(cz.get(polyIndex));
+			 cz.remove(polyIndex);
+		 }
+
+		 //path.addPoint(new Point2D.Double(100, 100));
+	 }
+
+	 private void lineSearch(Zone p) {
+
+	 }
 
 	@Nullable
 	@Override
@@ -82,8 +134,9 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 		zoneLayingState = false;
 
 		markers = new HashSet<Marker>();
-		zones = new HashSet<Polygon>();
+		//zones = new HashSet<Polygon>();
 		paths = new HashSet<Polyline>();
+		zones = new ArrayList<Zone>();
 
 		quadLineOptions = new PolylineOptions()
 				.color(getResources().getColor(R.color.map_quad_path_color))
@@ -92,8 +145,6 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 	}
 
 	public void loadKML(Intent intent, Context c) {
-
-
 
 	}
 
@@ -106,8 +157,8 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 			mMap.setOnPolygonClickListener(null);
 		}
 
-		for(Polygon z : zones) {
-			z.setClickable(set);
+		for(Zone z : zones) {
+			z.poly.setClickable(set);
 		}
 		for(Polyline p : paths) {
 			p.setClickable(set);
@@ -128,12 +179,9 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 			zoneLayingState = true;
 
 			setObjectsClickable(false);
+			zone = new Zone(getActivity().getApplicationContext());
 
-			zoneOptions = new PolygonOptions()
-					.fillColor(getResources().getColor(R.color.map_zone_fill))
-					.strokeColor(getResources().getColor(R.color.map_zone_outline))
-					.strokeWidth(getResources().getDimension(R.dimen.map_stroke_width))
-					.clickable(true);
+
 		} else {
 			addZonePoint(new LatLng(0, 0), true);
 		}
@@ -262,8 +310,14 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 				.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
-						zones.remove(p);
 						p.remove();
+						for(Zone z : zones) {
+							if(z.poly.equals(p)) {
+								zones.remove(z);
+								break;
+							}
+						}
+
 						Log.i("Polygon Clicked", "Polygon Count: " + zones.size());
 						dialog.dismiss();
 					}
@@ -310,11 +364,11 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 		double latitude = ll.latitude + (y / r_earth) * (180 / Math.PI);
 		double longitude = ll.longitude + (x / r_earth) * (180 / Math.PI) / Math.cos(ll.latitude * Math.PI/180);
 
-		ll = new LatLng(latitude, longitude);
-		quadLineOptions.add(ll);
+		quadPos = new LatLng(latitude, longitude);
+		quadLineOptions.add(quadPos);
 
 		MarkerOptions newMarker = new MarkerOptions()
-				.position(ll)
+				.position(quadPos)
 				.icon(BitmapDescriptorFactory.fromResource(R.mipmap.quad_pin))
 				.title("Quad bike position")
 				.flat(false);
@@ -336,24 +390,37 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 
 	private void addZonePoint(LatLng ll, boolean isFinal) {
 		if(isFinal) {
-			zone.setClickable(true);
-			zones.add(zone);
+			//zones.add(zone);
+
+			zone.removeFromMap();
+			ArrayList<Zone> nz = zone.convexSplit();
+
+			Log.e("number of zones", "" + nz.size());
+
+			for(Zone z : nz) {
+				zones.add(z);
+				z.addToMap(mMap);
+			}
+
 			zone = null;
 			zoneLayingState = false;
-			zoneOptions = null;
 			m.zoneMode.setChecked(false);
 			setObjectsClickable(true);
 			return;
 		}
 
-		zoneOptions.add(ll);
+		zone.addPoint(ll);
+		zone.addToMap(mMap);
+		/*
+		zone.opts.add(ll);
 		try {
-			zone.remove();
+			zone.poly.remove();
 		} catch (NullPointerException e) {
 			Log.i("Null Pointer", "zone doesnt exist yet");
 		}
 
-		zone = mMap.addPolygon(zoneOptions);
+		zone.poly = mMap.addPolygon(zone.opts);
+		*/
 	}
 
 	private void addPathPoint(LatLng ll, boolean isFinal) {
@@ -389,8 +456,8 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 		}
 		paths.clear();
 
-		for(Polygon p : zones) {
-			p.remove();
+		for(Zone p : zones) {
+			p.poly.remove();
 		}
 		zones.clear();
 	}
@@ -424,7 +491,7 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 		mMap.setOnMarkerClickListener(this);
 		mMap.setOnPolylineClickListener(this);
 
-
+		/*
 		PolygonOptions rectOptions = new PolygonOptions()
 				.add(new LatLng(-34.922142, 138.587171))
 				.add(new LatLng(-34.921003, 138.610665))
@@ -459,6 +526,8 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 
 		polyline = mMap.addPolyline(lineOptions);
 		paths.add(polyline);
+
+		*/
 	}
 
 

@@ -1,15 +1,94 @@
 package com.fyp2099.app;
 
+import android.content.Context;
+import android.util.Log;
+
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collections;
 
+import com.google.android.gms.maps.model.Polygon;
+import com.google.android.gms.maps.model.PolygonOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 /**
  * Created by Jono on 26/10/2016.
  */
 public class Zone extends NavigationObject {
+
+	public Polygon poly;
+	public PolygonOptions opts;
+
+
+	public Zone(Context c) {
+		super(c);
+	}
+
+	public void addToMap(GoogleMap map) {
+
+		// get the display options prepared
+		opts = new PolygonOptions()
+				.fillColor(context.getResources().getColor(R.color.map_zone_fill))
+				.strokeColor(context.getResources().getColor(R.color.map_zone_outline))
+				.strokeWidth(context.getResources().getDimension(R.dimen.map_stroke_width))
+				.clickable(true);
+
+		// add all of the defined points into the display model
+		for(LatLng ll : points) {
+			opts.add(ll);
+		}
+
+		// attempt to remove the previous polygon from the map (if it exists)
+		try {
+			poly.remove();
+		} catch (NullPointerException e) {
+			Log.i("Null Pointer", "zone doesnt exist yet");
+		}
+
+		// add the new polygon to the map, retrieve the handle
+		poly = map.addPolygon(opts);
+
+	}
+
+	public void removeFromMap() {
+		poly.remove();
+	}
+
+	@Override
+	protected void recreatePoly() {
+
+	}
+
+	private void correctWinding() {
+		if(numPoints() < 3) {
+			return;
+		}
+
+		LatLng a = getPoint(0);
+		LatLng b = getPoint(1);
+		LatLng c = getPoint(2);
+
+		LatLng b_a = new LatLng(b.latitude - a.latitude, b.longitude - a.longitude);
+		LatLng c_a = new LatLng(c.latitude - a.latitude, c.longitude - a.longitude);
+
+		double winding = b_a.latitude*c_a.longitude - b_a.longitude*c_a.latitude;
+
+		if(winding < 0) {
+			// already in the correct winding order
+			Log.i("Winding", "Winding NOT corrected");
+			return;
+		}
+		else {
+			Log.i("Winding", "Winding IS corrected");
+
+			Collections.reverse(points);
+		}
+
+	}
 
 	private boolean sameSide(LatLng pos, int edge) {
 		edge = edge % 3;
@@ -90,21 +169,27 @@ public class Zone extends NavigationObject {
 		// ----------------------------------------------------------------------------
 		ArrayList<Zone> convexZones = new ArrayList<Zone>();
 
+		// correct for CCW winding, as required
+		correctWinding();
+
 
 		// make working copy of zone
-		Zone work = new Zone();
+		Zone work = new Zone(context);
 		for(int i=0; i<numPoints(); i++) {
 			work.addPoint(getPoint(i));
 		}
 
+		int c = 0;
 
 		while(true) {
+			c++;
 			boolean madeATriangle = false;
 
 			// break early if its not possible to make further triangles
-			if(work.numPoints() < 3)
+			if(work.numPoints() < 3) {
+				Log.i("break", "no more triangles");
 				break;
-
+			}
 			// for each vertex in the working set
 			for(int i=0; i<work.numPoints(); i++) {
 
@@ -130,11 +215,12 @@ public class Zone extends NavigationObject {
 				// if this is NOT an interior vertex
 				if(det < 0) {
 					// then skip, move to the next vertex
+					Log.i("break", "not an interior vertex");
 					continue;
 				}
 
 
-				Zone test = new Zone();
+				Zone test = new Zone(context);
 				test.addPoint(work.getPoint(pPrev));
 				test.addPoint(work.getPoint(pCur));
 				test.addPoint(work.getPoint(pNext));
@@ -151,6 +237,7 @@ public class Zone extends NavigationObject {
 					}
 
 					if (test.contains(work.getPoint(j))) {
+						Log.i("break", "point " + j + " lies within the triangle");
 						shouldContinue = true;
 						break;
 					}
@@ -166,10 +253,11 @@ public class Zone extends NavigationObject {
 
 
 				// success! found a possible triangle
+				Log.i("success", "found a triange");
 				convexZones.add(test);
 
 				// now recreate the working set
-				Zone newWork = new Zone();
+				Zone newWork = new Zone(context);
 				for(int j=0; j<work.numPoints(); j++) {
 					if(j == pCur)
 						continue;
@@ -188,7 +276,8 @@ public class Zone extends NavigationObject {
 
 		}
 
-
+		Log.e("Iterations", "" + c);
+		Log.e("Number of triangles", "" + convexZones.size());
 
 
 		// DECOMPOSITION ---------------------------------------------------------------------
@@ -244,7 +333,7 @@ public class Zone extends NavigationObject {
 
 						// this is where we merge them
 
-						Zone newPoly = new Zone();
+						Zone newPoly = new Zone(context);
 
 						boolean started = false;
 						int k = 0;
@@ -343,6 +432,7 @@ public class Zone extends NavigationObject {
 
 
 		return convexZones;
+
 
 	}
 

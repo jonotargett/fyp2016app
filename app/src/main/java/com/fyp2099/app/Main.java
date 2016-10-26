@@ -373,7 +373,7 @@ public class Main extends AppCompatActivity {
 						p.setData(data);
 						conn.QueueSend(p);
 					}
-					for(Polygon poly : MF.zones) {
+					for(Zone poly : MF.zones) {
 						p = new Packet(PacketID.ID_NAV_ZONE);
 						List<LatLng> points = poly.getPoints();
 						double[] data = new double[points.size()*2];

@@ -1,5 +1,6 @@
 package com.fyp2099.app;
 
+import android.content.Context;
 import android.location.Location;
 
 import com.google.android.gms.maps.model.LatLng;
@@ -13,19 +14,30 @@ import java.util.List;
  */
 public class NavigationObject {
 
-	public List<LatLng> points;
+	protected List<LatLng> points;
+	protected Context context;
 
-	public NavigationObject() {
+	public NavigationObject(Context c) {
 		points = new ArrayList<LatLng>();
+		context = c;
 	}
 
 
 	public void addPoint(LatLng point) {
 		points.add(point);
+		recreatePoly();
+	}
+
+	protected void recreatePoly() {
+
 	}
 
 	public int numPoints() {
 		return points.size();
+	}
+
+	public List<LatLng> getPoints() {
+		return points;
 	}
 
 	public LatLng getPoint(int n) {

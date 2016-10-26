@@ -1,5 +1,6 @@
 package com.fyp2099.app;
 
+import android.content.Context;
 import android.location.Location;
 
 import com.google.android.gms.maps.model.LatLng;
@@ -8,10 +9,26 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import com.google.android.gms.maps.model.Polygon;
+import com.google.android.gms.maps.model.PolygonOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
+
 /**
  * Created by Jono on 26/10/2016.
  */
 public class Path extends NavigationObject {
+
+	public Polyline poly;
+
+	public Path(Context c) {
+		super(c);
+	}
+
+	@Override
+	protected void recreatePoly() {
+
+	}
 
 	@Override
 	public LatLng getNearestPoint(LatLng pos) {
