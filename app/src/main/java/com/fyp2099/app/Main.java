@@ -48,6 +48,7 @@ public class Main extends AppCompatActivity {
 
 	public static FragmentManager FM;
 	public static MapFragmentClass MF;
+	public static CameraFragment CF;
 	public static TextView TV;
 
 	EditText et_ip0;
@@ -96,8 +97,11 @@ public class Main extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 	    setSupportActionBar(toolbar);
+
+
 	    getUiHandles();
 	    setEventListeners();
+
 
 		// add mapfragment to the layout
 	    FM = getFragmentManager();
@@ -106,6 +110,19 @@ public class Main extends AppCompatActivity {
 	    FragmentTransaction FT = FM.beginTransaction();
 	    FT.add(R.id.maplayout, MF, "bats");
 	    FT.commit();
+
+
+		/*
+		// add camerafragment to the layout
+	    FM = getFragmentManager();
+	    CF = new CameraFragment();
+	    FragmentTransaction FT = FM.beginTransaction();
+	    FT.add(R.id.maplayout, CF, "bats");
+	    FT.commit();
+		*/
+
+	    // general init
+	    Init();
 
 
 	    //obtain preferences file, and set preferences
@@ -127,11 +144,10 @@ public class Main extends AppCompatActivity {
 		String action = intent.getAction();
 	    String type = intent.getType();
 
-		// general init
-	    Init();
 
 
 
+		/*
 
 	    if (Intent.ACTION_SEND.equals(action) && type != null) {
 
@@ -150,21 +166,15 @@ public class Main extends AppCompatActivity {
 			    }
 			    catch(FileNotFoundException e) {
 				    // do nothing
-			    }/*
-				catch(XmlPullParserException e) {
-					// do nothing2
-				}
-				catch(IOException e) {
-					// do nothing3
-				}
-				*/
+			    }
+
 
 			    MF.loadKML(intent, getApplicationContext()); // Handle text being sent
 		    } else {
 			    // why did i even get sent this??!
 		    }
 	    }
-
+		*/
     }
 
 	private void getUiHandles() {
@@ -437,7 +447,7 @@ public class Main extends AppCompatActivity {
 								+ String.format(" %-4.1f degrees", p.getData(0)/(Math.PI/180) ));
 						break;
 					case ID_QUAD_POSITION:
-						MF.updateQuadPosition(p.getData(0), p.getData(1));
+						//MF.updateQuadPosition(p.getData(0), p.getData(1));
 						break;
 					default:
 						appendLog("unknown packet received\n");

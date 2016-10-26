@@ -354,6 +354,104 @@
                 <LinearLayout
                     android:orientation="horizontal"
                     android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:text="@string/ip_label"
+                        android:id="@+id/IPCamLabel"
+                        />
+
+                    <EditText
+                        android:layout_width="60dp"
+                        android:layout_height="wrap_content"
+                        android:inputType="number|numberDecimal"
+                        android:ems="10"
+                        android:textSize="12pt"
+                        android:id="@+id/ipCam1"
+                        android:maxLength="3"
+                        android:digits="0123456789."
+                        android:text="@string/default_ip0"
+                        />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:text="@string/ip_dot"
+                        android:id="@+id/textView15"
+                        />
+
+                    <EditText
+                        android:layout_width="60dp"
+                        android:layout_height="wrap_content"
+                        android:inputType="number|numberDecimal"
+                        android:ems="10"
+                        android:maxLength="3"
+                        android:textSize="12pt"
+                        android:digits="0123456789."
+                        android:id="@+id/ipCam2"
+                        android:text="@string/default_ip1"
+                        />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:text="@string/ip_dot"
+                        android:id="@+id/textView16"
+                        />
+
+                    <EditText
+                        android:layout_width="60dp"
+                        android:layout_height="wrap_content"
+                        android:inputType="number|numberDecimal"
+                        android:ems="10"
+                        android:maxLength="3"
+                        android:textSize="12pt"
+                        android:digits="0123456789."
+                        android:id="@+id/ipCam3"
+                        android:text="@string/default_ip2"
+                        />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:text="@string/ip_dot"
+                        android:id="@+id/textView17"
+                        />
+
+                    <EditText
+                        android:layout_width="60dp"
+                        android:layout_height="wrap_content"
+                        android:inputType="number|numberDecimal"
+                        android:ems="10"
+                        android:maxLength="3"
+                        android:textSize="12pt"
+                        android:digits="0123456789."
+                        android:id="@+id/ipCam4"
+                        android:text="@string/default_ip3"
+                        />
+
+                </LinearLayout>
+
+                <ToggleButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/connect_toggle_off"
+                    android:id="@+id/connectCamToggle"
+                    android:layout_gravity="right"
+                    android:textOff="@string/connect_toggle_off"
+                    android:textOn="@string/connect_toggle_progress"
+                    />
+
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
                     <Button
