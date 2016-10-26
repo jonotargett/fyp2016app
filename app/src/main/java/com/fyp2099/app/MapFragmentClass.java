@@ -68,7 +68,7 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 	//private PolygonOptions zoneOptions;
 	private Zone zone;
 	 private Path path;
-	 private Path genPath;
+	 public Path genPath;
 	 private LatLng curPos;
 	 private LatLng forwardVec;
 	 private LatLng downVec;
@@ -386,6 +386,7 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 		markers = new HashSet<Marker>();
 		paths = new ArrayList<Path>();
 		zones = new ArrayList<Zone>();
+		genPath = new Path(getActivity().getApplicationContext());
 
 		quadLineOptions = new PolylineOptions()
 				.color(getResources().getColor(R.color.map_quad_path_color))

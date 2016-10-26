@@ -201,32 +201,62 @@
                         android:id="@+id/togglePath"
                         android:checked="false"/>
 
-                    <ToggleButton
+                    <Button
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Map Mode"
-                        android:textOff="Satellite Map"
-                        android:textOn="Road Map"
-                        android:id="@+id/mapTypeButton"/>
+                        android:text="Clear all"
+                        android:id="@+id/clearPathsAndZones"/>
+
+
                 </LinearLayout>
 
-                <Button
+                <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Clear all"
-                    android:id="@+id/clearPathsAndZones"/>
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="Autonomous Navigation"
+                    android:id="@+id/textView21"/>
 
-                <Button
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Generate Route"
-                    android:id="@+id/generateRoute"/>
+                    android:layout_gravity="center_horizontal">
+
+                    <Button
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Generate Route"
+                        android:id="@+id/generateRoute"/>
+
+                    <Button
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Upload Route"
+                        android:id="@+id/uploadRoute"/>
+
+                </LinearLayout>
 
                 <Button
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Begin Scanning"
                     android:id="@+id/beginRoute"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="Miscellaneous"
+                    android:id="@+id/textView22"/>
+
+                <ToggleButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Map Mode"
+                    android:textOff="Satellite Map"
+                    android:textOn="Road Map"
+                    android:id="@+id/mapTypeButton"/>
 
                 <Button
                     android:layout_width="wrap_content"
@@ -445,28 +475,10 @@
                     android:text="@string/connect_toggle_off"
                     android:id="@+id/connectCamToggle"
                     android:layout_gravity="right"
-                    android:textOff="@string/connect_toggle_off"
-                    android:textOn="@string/connect_toggle_progress"
+                    android:textOff="Connect to Camera"
+                    android:textOn="Disconnect"
                     />
 
-                <LinearLayout
-                    android:orientation="horizontal"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-
-                    <Button
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="SEND PACKET 1"
-                        android:id="@+id/debugButton1"/>
-
-                    <Button
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="SEND PACKET 2"
-                        android:id="@+id/debugButton2"
-                        />
-                </LinearLayout>
 
                 <TextView
                     android:layout_width="match_parent"
@@ -476,7 +488,7 @@
                     android:layout_alignParentBottom="true"
                     android:layout_alignParentEnd="true"
                     android:layout_alignParentStart="true"
-                    android:maxLength="1000"
+                    android:maxLength="10000"
                     android:scrollbars="vertical"
                     android:gravity="bottom"
                     android:padding="5dp"/>

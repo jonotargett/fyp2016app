@@ -12,6 +12,7 @@ public enum PacketID {
 	ID_NULL(0x00),
 	ID_SOH(0x01),
 	ID_EOT(0x04),
+	ID_READY(0x05),
 	ID_IDLE(0x16),
 	ID_ETB(0x17),
 	ID_CANCEL(0x18),

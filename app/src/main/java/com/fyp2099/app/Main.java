@@ -59,11 +59,12 @@ public class Main extends AppCompatActivity {
 	private TextView headingLabel;
 	private Button emergencyStopButton;
 	private Button stopEngineButton;
-	private Button debug1;
-	private Button debug2;
+	//private Button debug1;
+	//private Button debug2;
 	private Button joystickButton;
 	private Button clearAllButton;
 	private Button generateButton;
+	private Button uploadButton;
 	private Button beginButton;
 	private Button resetGPSButton;
 	public ToggleButton zoneMode;
@@ -99,8 +100,7 @@ public class Main extends AppCompatActivity {
 	    setSupportActionBar(toolbar);
 
 
-	    getUiHandles();
-	    setEventListeners();
+
 
 
 		// add mapfragment to the layout
@@ -125,56 +125,7 @@ public class Main extends AppCompatActivity {
 	    Init();
 
 
-	    //obtain preferences file, and set preferences
-	    prefs = getPreferences(Context.MODE_PRIVATE);
-	    prefsEditor = prefs.edit();
 
-
-	    int a = prefs.getInt(getString(R.string.ip0), 255);
-	    int b = prefs.getInt(getString(R.string.ip1), 255);
-	    int c = prefs.getInt(getString(R.string.ip2), 255);
-	    int d = prefs.getInt(getString(R.string.ip3), 255);
-	    et_ip0.setText(a + "");
-	    et_ip1.setText(b + "");
-	    et_ip2.setText(c + "");
-	    et_ip3.setText(d + "");
-
-	    // check the opening scenario: ie app click, open kml file, etc
-	    Intent intent = getIntent();
-		String action = intent.getAction();
-	    String type = intent.getType();
-
-
-
-
-		/*
-
-	    if (Intent.ACTION_SEND.equals(action) && type != null) {
-
-	    }
-
-	    if(Intent.ACTION_VIEW.equals(action) && type != null) {
-
-		    if ("application/vnd.google-earth.kml+xml".equals(type)) {
-			    Uri fileUri = (Uri) intent.getParcelableExtra(Intent.EXTRA_STREAM);
-			    appendLog("loading KML...");
-
-			    try {
-				    InputStream kmlInputStream = getContentResolver().openInputStream(fileUri);
-				    //KmlLayer layer = new KmlLayer(mMap, kmlInputStream, c);
-				    //layer.addLayerToMap();
-			    }
-			    catch(FileNotFoundException e) {
-				    // do nothing
-			    }
-
-
-			    MF.loadKML(intent, getApplicationContext()); // Handle text being sent
-		    } else {
-			    // why did i even get sent this??!
-		    }
-	    }
-		*/
     }
 
 	private void getUiHandles() {
@@ -193,6 +144,7 @@ public class Main extends AppCompatActivity {
 
 		clearAllButton = (Button)findViewById(R.id.clearPathsAndZones);
 		generateButton = (Button)findViewById(R.id.generateRoute);
+		uploadButton = (Button)findViewById(R.id.uploadRoute);
 		beginButton = (Button)findViewById(R.id.beginRoute);
 		zoneMode = (ToggleButton)findViewById(R.id.toggleZone);
 		pathMode = (ToggleButton)findViewById(R.id.togglePath);
@@ -205,8 +157,8 @@ public class Main extends AppCompatActivity {
 		et_ip3 = (EditText) findViewById(R.id.ip4);
 
 		resetGPSButton = (Button)findViewById(R.id.rgpspos);
-		debug1 = (Button)findViewById(R.id.debugButton1);
-		debug2 = (Button)findViewById(R.id.debugButton2);
+		//debug1 = (Button)findViewById(R.id.debugButton1);
+		//debug2 = (Button)findViewById(R.id.debugButton2);
 		TV = (TextView)findViewById(R.id.textView);
 		TV.setMovementMethod(new ScrollingMovementMethod());
 
@@ -217,14 +169,15 @@ public class Main extends AppCompatActivity {
 		IB1.setOnClickListener(button_listener);
 		IB2.setOnClickListener(button_listener);
 
-		debug1.setOnClickListener(button_listener);
-		debug2.setOnClickListener(button_listener);
+		//debug1.setOnClickListener(button_listener);
+		//debug2.setOnClickListener(button_listener);
 		emergencyStopButton.setOnClickListener(button_listener);
 		stopEngineButton.setOnClickListener(button_listener);
 		resetGPSButton.setOnClickListener(button_listener);
 
 		clearAllButton.setOnClickListener(button_listener);
 		generateButton.setOnClickListener(button_listener);
+		uploadButton.setOnClickListener(button_listener);
 		beginButton.setOnClickListener(button_listener);
 		zoneMode.setOnClickListener(button_listener);
 		pathMode.setOnClickListener(button_listener);
@@ -287,10 +240,67 @@ public class Main extends AppCompatActivity {
 		// network code
 		conn = new TCPConnection(this);
 
+		getUiHandles();
+		setEventListeners();
+
 		mapType.setChecked(true);
 		lastJoystickUpdate = SystemClock.elapsedRealtime();
 
+		beginButton.setEnabled(false);
+		uploadButton.setEnabled(false);
+
 		appendLog("views initialised...\n");
+
+		//obtain preferences file, and set preferences
+		prefs = getPreferences(Context.MODE_PRIVATE);
+		prefsEditor = prefs.edit();
+
+
+		int a = prefs.getInt(getString(R.string.ip0), 255);
+		int b = prefs.getInt(getString(R.string.ip1), 255);
+		int c = prefs.getInt(getString(R.string.ip2), 255);
+		int d = prefs.getInt(getString(R.string.ip3), 255);
+		et_ip0.setText(a + "");
+		et_ip1.setText(b + "");
+		et_ip2.setText(c + "");
+		et_ip3.setText(d + "");
+
+		// check the opening scenario: ie app click, open kml file, etc
+		Intent intent = getIntent();
+		String action = intent.getAction();
+		String type = intent.getType();
+
+
+
+
+		/*
+
+	    if (Intent.ACTION_SEND.equals(action) && type != null) {
+
+	    }
+
+	    if(Intent.ACTION_VIEW.equals(action) && type != null) {
+
+		    if ("application/vnd.google-earth.kml+xml".equals(type)) {
+			    Uri fileUri = (Uri) intent.getParcelableExtra(Intent.EXTRA_STREAM);
+			    appendLog("loading KML...");
+
+			    try {
+				    InputStream kmlInputStream = getContentResolver().openInputStream(fileUri);
+				    //KmlLayer layer = new KmlLayer(mMap, kmlInputStream, c);
+				    //layer.addLayerToMap();
+			    }
+			    catch(FileNotFoundException e) {
+				    // do nothing
+			    }
+
+
+			    MF.loadKML(intent, getApplicationContext()); // Handle text being sent
+		    } else {
+			    // why did i even get sent this??!
+		    }
+	    }
+		*/
 	}
 
 
@@ -351,55 +361,72 @@ public class Main extends AppCompatActivity {
 						MF.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
 					}
 					break;
-				case R.id.debugButton1:
-					p = new Packet(PacketID.ID_DEBUG);
-					conn.QueueSend(p);
-					break;
 				case R.id.clearPathsAndZones:
+					// clear locally
 					MF.clearAll();
-					p = new Packet(PacketID.ID_CLEAR_NAV_POINTS);
-					conn.QueueSend(p);
 					break;
 				case R.id.generateRoute:
 					MF.generatePath();
-					/*
-					for(Polyline poly : MF.paths) {
-						p = new Packet(PacketID.ID_NAV_PATH);
-						List<LatLng> points = poly.getPoints();
-						double[] data = new double[points.size()*2];
-						int offset = 0;
-						for(LatLng ll : points) {
-							data[offset++] = ll.latitude;
-							data[offset++] = ll.longitude;
-						}
-						p.setData(data);
-						conn.QueueSend(p);
+					uploadButton.setEnabled(true);
+					break;
+				case R.id.uploadRoute: {
+					//generateButton.setEnabled(false);
+					beginButton.setEnabled(false);
+					// clear the quad version of the path, ready for a new path.
+
+					p = new Packet(PacketID.ID_NAV_BASELOC);
+					double[] baseloc = new double[2];
+					baseloc[0] = MF.central.latitude;
+					baseloc[1] = MF.central.longitude;
+					p.setData(baseloc);
+					conn.QueueSend(p);
+
+					p = new Packet(PacketID.ID_CLEAR_NAV_POINTS);
+					conn.QueueSend(p);
+
+					// get all of the lat/long coordinates
+					List<LatLng> points = MF.genPath.getPoints();
+					double[] data = new double[points.size() * 2];
+					int offset = 0;
+					for (LatLng ll : points) {
+						data[offset++] = ll.latitude;
+						data[offset++] = ll.longitude;
 					}
-					for(Zone poly : MF.zones) {
-						p = new Packet(PacketID.ID_NAV_ZONE);
-						List<LatLng> points = poly.getPoints();
-						double[] data = new double[points.size()*2];
-						int offset = 0;
-						for(LatLng ll : points) {
-							data[offset++] = ll.latitude;
-							data[offset++] = ll.longitude;
-						}
-						p.setData(data);
+
+					// send them in groups of 16. 16 doubles = 8 pairs = 128 bytes
+					int chunk = 0;
+					while(chunk < points.size()*2) {
+						int toSend = Math.min(16, (points.size()*2)-chunk);
+						double[] part = new double[toSend];
+
+						Log.w("offset", "" + offset);
+						Log.w("src size", "" + points.size()*2);
+						Log.w("Chunk", "" + chunk);
+						Log.w("toSend", "" + toSend);
+
+						System.arraycopy(data, chunk, part, 0, toSend);
+
+						p = new Packet(PacketID.ID_NAV_POINTS);
+						p.setData(part);
 						conn.QueueSend(p);
+
+						chunk += toSend;
 					}
+
 					p = new Packet(PacketID.ID_NAV_GENERATE);
 					conn.QueueSend(p);
-					*/
+					//generateButton.setEnabled(true);
 					break;
+				}
 				case R.id.beginRoute:
 					if(isNavigating) {
 						beginButton.setText("Begin Scanning");
-						generateButton.setEnabled(true);
+						//generateButton.setEnabled(true);
 						p = new Packet(PacketID.ID_AUTO_NAV_OFF);
 						conn.QueueSend(p);
 					} else {
 						beginButton.setText("Pause Scanning");
-						generateButton.setEnabled(false);
+						//generateButton.setEnabled(false);
 						p = new Packet(PacketID.ID_AUTO_NAV_ON);
 						conn.QueueSend(p);
 					}
@@ -449,8 +476,10 @@ public class Main extends AppCompatActivity {
 								+ String.format(" %-4.1f degrees", p.getData(0)/(Math.PI/180) ));
 						break;
 					case ID_QUAD_POSITION:
-						//MF.updateQuadPosition(p.getData(0), p.getData(1));
+						MF.updateQuadPosition(p.getData(0), p.getData(1));
 						break;
+					case ID_READY:
+						beginButton.setEnabled(true);
 					default:
 						appendLog("unknown packet received\n");
 						break;
@@ -608,4 +637,37 @@ for(Polygon poly : MF.zones) {
 							p.setData(data);
 							conn.QueueSend(p);
 						}
+ */
+
+
+
+/*
+for (Polyline poly : MF.paths) {
+						p = new Packet(PacketID.ID_NAV_PATH);
+						List<LatLng> points = poly.getPoints();
+						double[] data = new double[points.size() * 2];
+						int offset = 0;
+						for (LatLng ll : points) {
+							data[offset++] = ll.latitude;
+							data[offset++] = ll.longitude;
+						}
+						p.setData(data);
+						conn.QueueSend(p);
+					}
+					for (Zone poly : MF.zones) {
+						p = new Packet(PacketID.ID_NAV_ZONE);
+						List<LatLng> points = poly.getPoints();
+						double[] data = new double[points.size() * 2];
+						int offset = 0;
+						for (LatLng ll : points) {
+							data[offset++] = ll.latitude;
+							data[offset++] = ll.longitude;
+						}
+						p.setData(data);
+						conn.QueueSend(p);
+					}
+					p = new Packet(PacketID.ID_NAV_GENERATE);
+					conn.QueueSend(p);
+
+					break;
  */
