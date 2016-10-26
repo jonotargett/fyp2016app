@@ -641,6 +641,19 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 		quadLine = mMap.addPolyline(quadLineOptions);
 	}
 
+	 public void clearTrail() {
+		 try {
+			 quadLine.remove();
+		 } catch(NullPointerException e) {
+			 // do nothing
+		 }
+
+		 quadLineOptions = new PolylineOptions()
+				 .color(getResources().getColor(R.color.map_quad_path_color))
+				 .width(getResources().getDimension(R.dimen.map_stroke_width))
+				 .clickable(false);
+	 }
+
 	private void addZonePoint(LatLng ll, boolean isFinal) {
 		if(isFinal) {
 			//zones.add(zone);
@@ -718,7 +731,8 @@ public class MapFragmentClass extends Fragment implements OnMapReadyCallback,
 
 		mMap.addMarker(new MarkerOptions().position(central).title("University of Adelaide")).setDraggable(true);
 		mMap.moveCamera(CameraUpdateFactory.newLatLng(central));
-		mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(central, 15.0f));
+		//mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(central, 15.0f));
+		mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(central, 18.0f));
 
 		mMap.setOnMapClickListener(this);
 		mMap.setOnMapLongClickListener(this);

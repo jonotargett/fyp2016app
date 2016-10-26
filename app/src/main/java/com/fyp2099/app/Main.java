@@ -66,7 +66,9 @@ public class Main extends AppCompatActivity {
 	private Button generateButton;
 	private Button uploadButton;
 	private Button beginButton;
+	private Button pauseButton;
 	private Button resetGPSButton;
+	private Button clearTrailButton;
 	public ToggleButton zoneMode;
 	public ToggleButton pathMode;
 	private ToggleButton connectToggle;
@@ -143,9 +145,11 @@ public class Main extends AppCompatActivity {
 		joystick = (Joystick)findViewById(R.id.joystick);
 
 		clearAllButton = (Button)findViewById(R.id.clearPathsAndZones);
+		clearTrailButton = (Button)findViewById(R.id.clearTrail);
 		generateButton = (Button)findViewById(R.id.generateRoute);
 		uploadButton = (Button)findViewById(R.id.uploadRoute);
 		beginButton = (Button)findViewById(R.id.beginRoute);
+		pauseButton = (Button)findViewById(R.id.pauseRoute);
 		zoneMode = (ToggleButton)findViewById(R.id.toggleZone);
 		pathMode = (ToggleButton)findViewById(R.id.togglePath);
 		mapType = (ToggleButton)findViewById(R.id.mapTypeButton);
@@ -176,9 +180,11 @@ public class Main extends AppCompatActivity {
 		resetGPSButton.setOnClickListener(button_listener);
 
 		clearAllButton.setOnClickListener(button_listener);
+		clearTrailButton.setOnClickListener(button_listener);
 		generateButton.setOnClickListener(button_listener);
 		uploadButton.setOnClickListener(button_listener);
 		beginButton.setOnClickListener(button_listener);
+		pauseButton.setOnClickListener(button_listener);
 		zoneMode.setOnClickListener(button_listener);
 		pathMode.setOnClickListener(button_listener);
 		mapType.setOnClickListener(button_listener);
@@ -246,7 +252,7 @@ public class Main extends AppCompatActivity {
 		mapType.setChecked(true);
 		lastJoystickUpdate = SystemClock.elapsedRealtime();
 
-		beginButton.setEnabled(false);
+		//beginButton.setEnabled(false);
 		uploadButton.setEnabled(false);
 
 		appendLog("views initialised...\n");
@@ -371,7 +377,7 @@ public class Main extends AppCompatActivity {
 					break;
 				case R.id.uploadRoute: {
 					//generateButton.setEnabled(false);
-					beginButton.setEnabled(false);
+					//beginButton.setEnabled(false);
 					// clear the quad version of the path, ready for a new path.
 
 					p = new Packet(PacketID.ID_NAV_BASELOC);
@@ -395,12 +401,12 @@ public class Main extends AppCompatActivity {
 
 					// send them in groups of 16. 16 doubles = 8 pairs = 128 bytes
 					int chunk = 0;
-					while(chunk < points.size()*2) {
-						int toSend = Math.min(16, (points.size()*2)-chunk);
+					while (chunk < points.size() * 2) {
+						int toSend = Math.min(16, (points.size() * 2) - chunk);
 						double[] part = new double[toSend];
 
 						Log.w("offset", "" + offset);
-						Log.w("src size", "" + points.size()*2);
+						Log.w("src size", "" + points.size() * 2);
 						Log.w("Chunk", "" + chunk);
 						Log.w("toSend", "" + toSend);
 
@@ -416,31 +422,30 @@ public class Main extends AppCompatActivity {
 					p = new Packet(PacketID.ID_NAV_GENERATE);
 					conn.QueueSend(p);
 					//generateButton.setEnabled(true);
-					break;
-				}
-				case R.id.beginRoute:
-					if(isNavigating) {
-						beginButton.setText("Begin Scanning");
-						//generateButton.setEnabled(true);
-						p = new Packet(PacketID.ID_AUTO_NAV_OFF);
-						conn.QueueSend(p);
-					} else {
-						beginButton.setText("Pause Scanning");
-						//generateButton.setEnabled(false);
-						p = new Packet(PacketID.ID_AUTO_NAV_ON);
-						conn.QueueSend(p);
 					}
+					break;
+
+				case R.id.beginRoute:
+					p = new Packet(PacketID.ID_AUTO_NAV_ON);
+					conn.QueueSend(p);
+					break;
+				case R.id.pauseRoute:
+					p = new Packet(PacketID.ID_AUTO_NAV_OFF);
+					conn.QueueSend(p);
 					break;
 				case R.id.joystickButton:
 					p = new Packet(PacketID.ID_BRAKE);
 					conn.QueueSend(p);
 					break;
 				case R.id.rgpspos: {
-					p = new Packet(PacketID.ID_QUAD_POSITION);
+					p = new Packet(PacketID.ID_QUAD_RESETPOS);
 					//send the position data
 					conn.QueueSend(p);
 					break;
 				}
+				case R.id.clearTrail:
+					MF.clearTrail();
+					break;
 				default:
 					VF.setDisplayedChild(0);
 			}
@@ -480,6 +485,7 @@ public class Main extends AppCompatActivity {
 						break;
 					case ID_READY:
 						beginButton.setEnabled(true);
+						break;
 					default:
 						appendLog("unknown packet received\n");
 						break;
